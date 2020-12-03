@@ -39,7 +39,7 @@ func part2() {
 		path{xInc: 1, yInc: 2},
 	}
 
-	var outcomes []int
+	prod := 1
 
 	for _, p := range paths {
 		x, y, trees := 0, 0, 0
@@ -52,14 +52,10 @@ func part2() {
 			}
 		}
 
-		outcomes = append(outcomes, trees)
+		prod *= trees
 	}
 
-	product := 1
-	for _, outcome := range outcomes {
-		product = product * outcome
-	}
-	fmt.Print("Trees outcome product: ", product)
+	fmt.Print("Trees outcome product: ", prod)
 }
 
 func main() {
