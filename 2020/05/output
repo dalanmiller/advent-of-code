@@ -1,0 +1,128 @@
+row:  0 | False/   0 |False/   1 |False/   2 |False/   3 |False/   4 |False/   5 |False/   6 |False/   7 |
+row:  1 | False/   8 |False/   9 |False/  10 |False/  11 |False/  12 |False/  13 |False/  14 |True /  15 |
+row:  2 | True /  16 |True /  17 |True /  18 |True /  19 |True /  20 |True /  21 |True /  22 |True /  23 |
+row:  3 | True /  24 |True /  25 |True /  26 |True /  27 |True /  28 |True /  29 |True /  30 |True /  31 |
+row:  4 | True /  32 |True /  33 |True /  34 |True /  35 |True /  36 |True /  37 |True /  38 |True /  39 |
+row:  5 | True /  40 |True /  41 |True /  42 |True /  43 |True /  44 |True /  45 |True /  46 |True /  47 |
+row:  6 | True /  48 |True /  49 |True /  50 |True /  51 |True /  52 |True /  53 |True /  54 |True /  55 |
+row:  7 | True /  56 |True /  57 |True /  58 |True /  59 |True /  60 |True /  61 |True /  62 |True /  63 |
+row:  8 | True /  64 |True /  65 |True /  66 |True /  67 |True /  68 |True /  69 |True /  70 |True /  71 |
+row:  9 | True /  72 |True /  73 |True /  74 |True /  75 |True /  76 |True /  77 |True /  78 |True /  79 |
+row: 10 | True /  80 |True /  81 |True /  82 |True /  83 |True /  84 |True /  85 |True /  86 |True /  87 |
+row: 11 | True /  88 |True /  89 |True /  90 |True /  91 |True /  92 |True /  93 |True /  94 |True /  95 |
+row: 12 | True /  96 |True /  97 |True /  98 |True /  99 |True / 100 |True / 101 |True / 102 |True / 103 |
+row: 13 | True / 104 |True / 105 |True / 106 |True / 107 |True / 108 |True / 109 |True / 110 |True / 111 |
+row: 14 | True / 112 |True / 113 |True / 114 |True / 115 |True / 116 |True / 117 |True / 118 |True / 119 |
+row: 15 | True / 120 |True / 121 |True / 122 |True / 123 |True / 124 |True / 125 |True / 126 |True / 127 |
+row: 16 | True / 128 |True / 129 |True / 130 |True / 131 |True / 132 |True / 133 |True / 134 |True / 135 |
+row: 17 | True / 136 |True / 137 |True / 138 |True / 139 |True / 140 |True / 141 |True / 142 |True / 143 |
+row: 18 | True / 144 |True / 145 |True / 146 |True / 147 |True / 148 |True / 149 |True / 150 |True / 151 |
+row: 19 | True / 152 |True / 153 |True / 154 |True / 155 |True / 156 |True / 157 |True / 158 |True / 159 |
+row: 20 | True / 160 |True / 161 |True / 162 |True / 163 |True / 164 |True / 165 |True / 166 |True / 167 |
+row: 21 | True / 168 |True / 169 |True / 170 |True / 171 |True / 172 |True / 173 |True / 174 |True / 175 |
+row: 22 | True / 176 |True / 177 |True / 178 |True / 179 |True / 180 |True / 181 |True / 182 |True / 183 |
+row: 23 | True / 184 |True / 185 |True / 186 |True / 187 |True / 188 |True / 189 |True / 190 |True / 191 |
+row: 24 | True / 192 |True / 193 |True / 194 |True / 195 |True / 196 |True / 197 |True / 198 |True / 199 |
+row: 25 | True / 200 |True / 201 |True / 202 |True / 203 |True / 204 |True / 205 |True / 206 |True / 207 |
+row: 26 | True / 208 |True / 209 |True / 210 |True / 211 |True / 212 |True / 213 |True / 214 |True / 215 |
+row: 27 | True / 216 |True / 217 |True / 218 |True / 219 |True / 220 |True / 221 |True / 222 |True / 223 |
+row: 28 | True / 224 |True / 225 |True / 226 |True / 227 |True / 228 |True / 229 |True / 230 |True / 231 |
+row: 29 | True / 232 |True / 233 |True / 234 |True / 235 |True / 236 |True / 237 |True / 238 |True / 239 |
+row: 30 | True / 240 |True / 241 |True / 242 |True / 243 |True / 244 |True / 245 |True / 246 |True / 247 |
+row: 31 | True / 248 |True / 249 |True / 250 |True / 251 |True / 252 |True / 253 |True / 254 |True / 255 |
+row: 32 | True / 256 |True / 257 |True / 258 |True / 259 |True / 260 |True / 261 |True / 262 |True / 263 |
+row: 33 | True / 264 |True / 265 |True / 266 |True / 267 |True / 268 |True / 269 |True / 270 |True / 271 |
+row: 34 | True / 272 |True / 273 |True / 274 |True / 275 |True / 276 |True / 277 |True / 278 |True / 279 |
+row: 35 | True / 280 |True / 281 |True / 282 |True / 283 |True / 284 |True / 285 |True / 286 |True / 287 |
+row: 36 | True / 288 |True / 289 |True / 290 |True / 291 |True / 292 |True / 293 |True / 294 |True / 295 |
+row: 37 | True / 296 |True / 297 |True / 298 |True / 299 |True / 300 |True / 301 |True / 302 |True / 303 |
+row: 38 | True / 304 |True / 305 |True / 306 |True / 307 |True / 308 |True / 309 |True / 310 |True / 311 |
+row: 39 | True / 312 |True / 313 |True / 314 |True / 315 |True / 316 |True / 317 |True / 318 |True / 319 |
+row: 40 | True / 320 |True / 321 |True / 322 |True / 323 |True / 324 |True / 325 |True / 326 |True / 327 |
+row: 41 | True / 328 |True / 329 |True / 330 |True / 331 |True / 332 |True / 333 |True / 334 |True / 335 |
+row: 42 | True / 336 |True / 337 |True / 338 |True / 339 |True / 340 |True / 341 |True / 342 |True / 343 |
+row: 43 | True / 344 |True / 345 |True / 346 |True / 347 |True / 348 |True / 349 |True / 350 |True / 351 |
+row: 44 | True / 352 |True / 353 |True / 354 |True / 355 |True / 356 |True / 357 |True / 358 |True / 359 |
+row: 45 | True / 360 |True / 361 |True / 362 |True / 363 |True / 364 |True / 365 |True / 366 |True / 367 |
+row: 46 | True / 368 |True / 369 |True / 370 |True / 371 |True / 372 |True / 373 |True / 374 |True / 375 |
+row: 47 | True / 376 |True / 377 |True / 378 |True / 379 |True / 380 |True / 381 |True / 382 |True / 383 |
+row: 48 | True / 384 |True / 385 |True / 386 |True / 387 |True / 388 |True / 389 |True / 390 |True / 391 |
+row: 49 | True / 392 |True / 393 |True / 394 |True / 395 |True / 396 |True / 397 |True / 398 |True / 399 |
+row: 50 | True / 400 |True / 401 |True / 402 |True / 403 |True / 404 |True / 405 |True / 406 |True / 407 |
+row: 51 | True / 408 |True / 409 |True / 410 |True / 411 |True / 412 |True / 413 |True / 414 |True / 415 |
+row: 52 | True / 416 |True / 417 |True / 418 |True / 419 |True / 420 |True / 421 |True / 422 |True / 423 |
+row: 53 | True / 424 |True / 425 |True / 426 |True / 427 |True / 428 |True / 429 |True / 430 |True / 431 |
+row: 54 | True / 432 |True / 433 |True / 434 |True / 435 |True / 436 |True / 437 |True / 438 |True / 439 |
+row: 55 | True / 440 |True / 441 |True / 442 |True / 443 |True / 444 |True / 445 |True / 446 |True / 447 |
+row: 56 | True / 448 |True / 449 |True / 450 |True / 451 |True / 452 |True / 453 |True / 454 |True / 455 |
+row: 57 | True / 456 |True / 457 |True / 458 |True / 459 |True / 460 |True / 461 |True / 462 |True / 463 |
+row: 58 | True / 464 |True / 465 |True / 466 |True / 467 |True / 468 |True / 469 |True / 470 |True / 471 |
+row: 59 | True / 472 |True / 473 |True / 474 |True / 475 |True / 476 |True / 477 |True / 478 |True / 479 |
+row: 60 | True / 480 |True / 481 |True / 482 |True / 483 |True / 484 |True / 485 |True / 486 |True / 487 |
+row: 61 | True / 488 |True / 489 |True / 490 |True / 491 |True / 492 |True / 493 |True / 494 |True / 495 |
+row: 62 | True / 496 |True / 497 |True / 498 |True / 499 |True / 500 |True / 501 |True / 502 |True / 503 |
+row: 63 | True / 504 |True / 505 |True / 506 |True / 507 |True / 508 |True / 509 |True / 510 |True / 511 |
+row: 64 | True / 512 |True / 513 |True / 514 |True / 515 |True / 516 |True / 517 |True / 518 |True / 519 |
+row: 65 | True / 520 |True / 521 |True / 522 |True / 523 |True / 524 |True / 525 |True / 526 |True / 527 |
+row: 66 | True / 528 |True / 529 |True / 530 |True / 531 |True / 532 |True / 533 |True / 534 |True / 535 |
+row: 67 | True / 536 |True / 537 |True / 538 |True / 539 |True / 540 |True / 541 |True / 542 |True / 543 |
+row: 68 | True / 544 |True / 545 |True / 546 |True / 547 |True / 548 |True / 549 |True / 550 |True / 551 |
+row: 69 | True / 552 |True / 553 |True / 554 |True / 555 |True / 556 |True / 557 |True / 558 |True / 559 |
+row: 70 | True / 560 |True / 561 |True / 562 |True / 563 |True / 564 |True / 565 |True / 566 |True / 567 |
+row: 71 | True / 568 |True / 569 |True / 570 |True / 571 |True / 572 |True / 573 |True / 574 |True / 575 |
+row: 72 | True / 576 |True / 577 |True / 578 |True / 579 |True / 580 |True / 581 |True / 582 |True / 583 |
+row: 73 | True / 584 |True / 585 |True / 586 |True / 587 |True / 588 |True / 589 |True / 590 |True / 591 |
+row: 74 | True / 592 |True / 593 |True / 594 |True / 595 |True / 596 |True / 597 |True / 598 |True / 599 |
+row: 75 | True / 600 |True / 601 |True / 602 |True / 603 |True / 604 |True / 605 |True / 606 |True / 607 |
+row: 76 | True / 608 |True / 609 |True / 610 |True / 611 |True / 612 |True / 613 |True / 614 |True / 615 |
+row: 77 | True / 616 |True / 617 |True / 618 |True / 619 |True / 620 |True / 621 |True / 622 |True / 623 |
+row: 78 | True / 624 |True / 625 |True / 626 |True / 627 |True / 628 |True / 629 |True / 630 |True / 631 |
+row: 79 | True / 632 |True / 633 |True / 634 |True / 635 |False/ 636 |True / 637 |True / 638 |True / 639 |
+row: 80 | True / 640 |True / 641 |True / 642 |True / 643 |True / 644 |True / 645 |True / 646 |True / 647 |
+row: 81 | True / 648 |True / 649 |True / 650 |True / 651 |True / 652 |True / 653 |True / 654 |True / 655 |
+row: 82 | True / 656 |True / 657 |True / 658 |True / 659 |True / 660 |True / 661 |True / 662 |True / 663 |
+row: 83 | True / 664 |True / 665 |True / 666 |True / 667 |True / 668 |True / 669 |True / 670 |True / 671 |
+row: 84 | True / 672 |True / 673 |True / 674 |True / 675 |True / 676 |True / 677 |True / 678 |True / 679 |
+row: 85 | True / 680 |True / 681 |True / 682 |True / 683 |True / 684 |True / 685 |True / 686 |True / 687 |
+row: 86 | True / 688 |True / 689 |True / 690 |True / 691 |True / 692 |True / 693 |True / 694 |True / 695 |
+row: 87 | True / 696 |True / 697 |True / 698 |True / 699 |True / 700 |True / 701 |True / 702 |True / 703 |
+row: 88 | True / 704 |True / 705 |True / 706 |True / 707 |True / 708 |True / 709 |True / 710 |True / 711 |
+row: 89 | True / 712 |True / 713 |True / 714 |True / 715 |True / 716 |True / 717 |True / 718 |True / 719 |
+row: 90 | True / 720 |True / 721 |True / 722 |True / 723 |True / 724 |True / 725 |True / 726 |True / 727 |
+row: 91 | True / 728 |True / 729 |True / 730 |True / 731 |True / 732 |True / 733 |True / 734 |True / 735 |
+row: 92 | True / 736 |True / 737 |True / 738 |True / 739 |True / 740 |True / 741 |True / 742 |True / 743 |
+row: 93 | True / 744 |True / 745 |True / 746 |True / 747 |True / 748 |True / 749 |True / 750 |True / 751 |
+row: 94 | True / 752 |True / 753 |True / 754 |True / 755 |True / 756 |True / 757 |True / 758 |True / 759 |
+row: 95 | True / 760 |True / 761 |True / 762 |True / 763 |True / 764 |True / 765 |True / 766 |True / 767 |
+row: 96 | True / 768 |True / 769 |True / 770 |True / 771 |True / 772 |True / 773 |True / 774 |True / 775 |
+row: 97 | True / 776 |True / 777 |True / 778 |True / 779 |True / 780 |True / 781 |True / 782 |True / 783 |
+row: 98 | True / 784 |True / 785 |True / 786 |True / 787 |True / 788 |True / 789 |True / 790 |True / 791 |
+row: 99 | True / 792 |True / 793 |True / 794 |True / 795 |True / 796 |True / 797 |True / 798 |True / 799 |
+row:100 | True / 800 |True / 801 |True / 802 |True / 803 |True / 804 |True / 805 |True / 806 |True / 807 |
+row:101 | True / 808 |True / 809 |True / 810 |True / 811 |True / 812 |True / 813 |True / 814 |True / 815 |
+row:102 | True / 816 |True / 817 |True / 818 |True / 819 |True / 820 |True / 821 |True / 822 |True / 823 |
+row:103 | True / 824 |True / 825 |True / 826 |True / 827 |True / 828 |True / 829 |True / 830 |True / 831 |
+row:104 | True / 832 |True / 833 |True / 834 |True / 835 |True / 836 |True / 837 |True / 838 |True / 839 |
+row:105 | True / 840 |True / 841 |True / 842 |True / 843 |True / 844 |True / 845 |True / 846 |True / 847 |
+row:106 | True / 848 |True / 849 |True / 850 |True / 851 |True / 852 |True / 853 |True / 854 |True / 855 |
+row:107 | True / 856 |True / 857 |True / 858 |True / 859 |True / 860 |True / 861 |True / 862 |True / 863 |
+row:108 | True / 864 |True / 865 |True / 866 |True / 867 |True / 868 |True / 869 |True / 870 |True / 871 |
+row:109 | True / 872 |True / 873 |True / 874 |True / 875 |True / 876 |True / 877 |True / 878 |True / 879 |
+row:110 | True / 880 |True / 881 |True / 882 |True / 883 |True / 884 |True / 885 |True / 886 |True / 887 |
+row:111 | True / 888 |True / 889 |True / 890 |True / 891 |True / 892 |True / 893 |True / 894 |True / 895 |
+row:112 | True / 896 |True / 897 |True / 898 |True / 899 |True / 900 |True / 901 |True / 902 |True / 903 |
+row:113 | True / 904 |True / 905 |True / 906 |True / 907 |True / 908 |True / 909 |True / 910 |True / 911 |
+row:114 | True / 912 |True / 913 |True / 914 |True / 915 |True / 916 |True / 917 |True / 918 |True / 919 |
+row:115 | True / 920 |True / 921 |True / 922 |True / 923 |True / 924 |True / 925 |True / 926 |True / 927 |
+row:116 | True / 928 |True / 929 |True / 930 |True / 931 |True / 932 |True / 933 |True / 934 |True / 935 |
+row:117 | True / 936 |True / 937 |True / 938 |True / 939 |True / 940 |True / 941 |True / 942 |True / 943 |
+row:118 | True / 944 |True / 945 |True / 946 |True / 947 |False/ 948 |False/ 949 |False/ 950 |False/ 951 |
+row:119 | False/ 952 |False/ 953 |False/ 954 |False/ 955 |False/ 956 |False/ 957 |False/ 958 |False/ 959 |
+row:120 | False/ 960 |False/ 961 |False/ 962 |False/ 963 |False/ 964 |False/ 965 |False/ 966 |False/ 967 |
+row:121 | False/ 968 |False/ 969 |False/ 970 |False/ 971 |False/ 972 |False/ 973 |False/ 974 |False/ 975 |
+row:122 | False/ 976 |False/ 977 |False/ 978 |False/ 979 |False/ 980 |False/ 981 |False/ 982 |False/ 983 |
+row:123 | False/ 984 |False/ 985 |False/ 986 |False/ 987 |False/ 988 |False/ 989 |False/ 990 |False/ 991 |
+row:124 | False/ 992 |False/ 993 |False/ 994 |False/ 995 |False/ 996 |False/ 997 |False/ 998 |False/ 999 |
+row:125 | False/1000 |False/1001 |False/1002 |False/1003 |False/1004 |False/1005 |False/1006 |False/1007 |
+row:126 | False/1008 |False/1009 |False/1010 |False/1011 |False/1012 |False/1013 |False/1014 |False/1015 |
+row:127 | False/1016 |False/1017 |False/1018 |False/1019 |False/1020 |False/1021 |False/1022 |False/1023 |
