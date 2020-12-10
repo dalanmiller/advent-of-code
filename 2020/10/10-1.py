@@ -1,4 +1,4 @@
-from itertools import combinations
+from collections import Counter
 
 test_case = """16
 10
@@ -23,24 +23,11 @@ def parse_line(row):
     return int(row.strip())
 
 def main(rows):
-    adapters = [parse_line(x) for x in rows]
+    adapters = [0] + [parse_line(x) for x in rows]
     adapters.sort()
-    adapters.insert(0, 0)
-
-    count = {1: 0, 2: 0, 3: 1}
-    print(adapters)
+    adapters.append(adapters[-1] + 3)
     
-    for i, current_adapter in enumerate(adapters, start=0):
-
-        if i + 1 < len(adapters):
-            next_adapter = adapters[i + 1]
-        
-            joltage_delta = next_adapter - current_adapter
-            print(i, current_adapter, next_adapter, joltage_delta)
-            count[joltage_delta] += 1
-
-        
-    print("Final count", count)
+    count = Counter([x - adapters[i-1] for i, x in enumerate(adapters[1:], start=1)])
 
     return count[1] * count[3]
 
