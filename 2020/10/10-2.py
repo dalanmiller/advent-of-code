@@ -49,9 +49,9 @@ def main(rows):
     adapters.append(adapters[-1] + 3)
 
     adapter_tree = construct_tree(adapters)
-    paths = generate_paths(adapter_tree)
+    paths_count = generate_paths(adapter_tree)
 
-    return paths
+    return paths_count
 
 if __name__ == "__main__":
     rows = None
