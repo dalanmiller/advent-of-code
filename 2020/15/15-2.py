@@ -72,8 +72,8 @@ def main(rows: List[List[str]]) -> int:
         if number in spoken:
             spoken[number] = (spoken[number][-1], turn)
         else:
-            spoken[number] = (turn,)
-    
+        spoken[number] = (turn,)
+        
         if turn == 30000000:
             return number
 
