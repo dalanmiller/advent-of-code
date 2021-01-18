@@ -1,15 +1,9 @@
-from functools import lru_cache
-import itertools
-from dataclasses import *
+from dataclasses import dataclass
 import math
-import sys
 import re
 import collections
-from typing import List, Dict, Any, Tuple, Set
+from typing import List, Dict, Any, Tuple, Set, Optional
 import numpy as np
-from numpy.core.defchararray import join
-from numpy.core.numeric import full
-from numpy.lib.npyio import recfromtxt
 
 test_case = """Tile 2311:
 ..##.#..#.
@@ -136,6 +130,7 @@ class T:
         self.id = id
         self.tile = tile
         self.trim()
+        self.edges()
 
     def __repr__(self):
         return f"<T id={self.id} size={self.tile.size}"
@@ -157,20 +152,26 @@ class T:
 
     def rotate(self, r: int):
         self.tile = np.rot90(self.tile, k=r, axes=(1, 0))
+        self.edges()
+        self.trim()
         return self
 
     def flip_horiz(self):
         self.tile = np.fliplr(self.tile)
+        self.edges()
+        self.trim()
         return self
 
     def flip_vert(self):
         self.tile = np.flip(self.tile, axis=0)
+        self.edges()
+        self.trim()
         return self
 
     def copy(self):
         return T(self.id, self.tile)
 
-    def trim(self):    
+    def trim(self):
         l = len(self.tile) - 1
         # remove top and bottom
         trimmed_tile = np.delete(self.tile, [0, l], axis=1)
@@ -179,11 +180,6 @@ class T:
 
         self.trimmed = trimmed_tile
         return self
-
-    def side(self, side):
-        edges: Tuple[str] = self.edges()
-        m: Dict[str, int] = {"n": 0, "e": 1, "s": 2, "w": 3}
-        return edges[m[side]]
 
     def edges(self):
         edges: Dict[str, List[str]] = {}
@@ -199,12 +195,13 @@ class T:
             if i == l - 1:
                 edges["e"] = column.tolist()  # right edge
 
-        # edges['s'] = [x for x in reversed(list(edges['s']))]
-        # edges['e'] = [x for x in reversed(edges['e'])]
         joined_edges: Dict[str, str] = {k: "".join(v) for k, v in edges.items()}
-        return tuple(
-            [joined_edges["n"], joined_edges["e"], joined_edges["s"], joined_edges["w"]]
-        )
+
+        self.top = joined_edges["n"]
+        self.right = joined_edges["e"]
+        self.left = joined_edges["w"]
+        self.bottom = joined_edges["s"]
+        self.borders = set([self.top, self.right, self.bottom, self.left])
 
     def generate_arrs(self):
         # start
@@ -216,7 +213,7 @@ class T:
         # 2 cw
         # 3 cw
 
-        return [
+        for arr in [
             self,  # 0
             # np.fliplr(tile),  # 1 -- Technically flipping along 'columns'
             self.copy().flip_horiz(),
@@ -232,76 +229,46 @@ class T:
             self.copy().rotate(2),
             # np.rot90(tile, k=3, axes=(1, 0)),  # 7
             self.copy().rotate(3),
-        ]
-
-
-# def compute_edges(image_data) -> Dict[str, Any]:
-#     edges: Dict[str, Any] = {}
-#     left: List[str] = []
-#     core: List[List[str]] = []
-#     right: List[str] = []
-#     core_full: List[List[str]] = []
-
-#     for i, row in enumerate(image_data):
-#         if i == 0:
-#             edges["n"] = row  # top edge
-
-#         if i == len(image_data) - 1:
-#             edges["s"] = row  # bottom edge
-
-#         if i not in (0, len(image_data) - 1):
-#             core.append(list(row[1:-1]))
-
-#         left.append(row[0])
-#         right.append(row[-1])
-#         core_full.append(list(row))
-
-#     # core.reverse()
-#     edges["w"] = "".join(left)
-#     edges["e"] = "".join(right)
-#     edges["core"] = np.array(core)
-#     edges["core_full"] = np.array(core_full)
-
-#     full_edges = edges.copy()
-#     for k, v in edges.items():
-#         if k.startswith("core"):
-#             continue
-#         inv = list(v)
-#         inv.reverse()
-#         full_edges[f"{k}_i"] = "".join(inv)
-
-#     return full_edges
+        ]:
+            yield arr
 
 
 def test_rotations():
     tile = np.full([3, 3], [("1", "2", "3"), ("4", "5", "6"), ("7", "8", "9")])
     t = T("1", tile)
-    edges: Set[str] = set(t.edges())
 
     t.rotate(1)
     assert (
         t.tile == np.full([3, 3], [["7", "4", "1"], ["8", "5", "2"], ["9", "6", "3"]])
     ).all()
-    assert t.edges() == ("123", "963", "789", "741")
-    assert t.side("n") == "123"
+    assert t.top == "123"
+    assert t.right == "963"
+    assert t.bottom == "789"
+    assert t.left == "741"
     t.rotate(1)
     assert (
         t.tile == np.full([3, 3], [["9", "8", "7"], ["6", "5", "4"], ["3", "2", "1"]])
     ).all()
-    assert t.edges() == ("741", "321", "963", "987")
-    assert t.side("n") == "741"
+    assert t.top == "741"
+    assert t.right == "321"
+    assert t.bottom == "963"
+    assert t.left == "987"
     t.rotate(1)
     assert (
         t.tile == np.full([3, 3], [["3", "6", "9"], ["2", "5", "8"], ["1", "4", "7"]])
     ).all()
-    assert t.edges() == ("987", "147", "321", "369")
-    assert t.side("n") == "987"
+    assert t.top == "987"
+    assert t.right == "147"
+    assert t.bottom == "321"
+    assert t.left == "369"
     t.rotate(1)
     assert (
         t.tile == np.full([3, 3], [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]])
     ).all()
-    assert t.edges() == ("369", "789", "147", "123")
-    assert t.side("n") == "369"
+    assert t.top == "369"
+    assert t.right == "789"
+    assert t.bottom == "147"
+    assert t.left == "123"
 
 
 def parse_input(input: List[str]) -> Dict[str, T]:
@@ -324,141 +291,64 @@ def parse_input(input: List[str]) -> Dict[str, T]:
     return tiles
 
 
-# def test_transform_core():
-#     test_core = np.full([3, 3], [(7, 4, 1), (8, 5, 2), (9, 6, 3)])
-
-#     result = transform_core(test_core, "n", "s")
-#     comparison = result == np.rot90(test_core, 2)
-#     assert comparison.all()
-
-#     result = transform_core(test_core, "n_i", "s")
-#     test = np.fliplr(np.rot90(test_core, 2))
-#     comparison = result == test
-#     assert comparison.all()
-
-#     result = transform_core(test_core, "w_i", "e")
-#     comparison = result[2] == [3, 6, 9]
-#     assert comparison.all()
-
-
-# dirs = {"n": 0, "e": 1, "s": 2, "w": 3}
-
-
-# def transform_core(core, edge_side: str, target_dir: str):
-
-#     if edge_side in ("n_i", "s_i"):
-#         core = np.fliplr(core)
-#     elif edge_side in ("w_i", "e_i"):
-#         core = np.rot90(core, axes=(1, 0))  # clockwise
-#         core = np.fliplr(core)
-#         core = np.rot90(core, axes=(0, 1))  # counter-clockwise
-
-#     rots = determine_cw_rotations(edge_side, target_dir)
-#     try:
-#         core = np.rot90(core, k=rots, axes=(1, 0))  # clockwise
-#     except Exception as e:
-#         import pdb
-
-#         pdb.set_trace()
-
-#     return core
-
-
-# @lru_cache()
-# def determine_cw_rotations(current: str, target: str) -> int:
-#     dirs_list: List[str] = ["n", "e", "s", "w"]
-#     start: int = dirs_list.index(current[0]) + 1
-#     end: int = dirs_list.index(target[0]) + 1
-
-#     # [1,2,3,4]
-#     # 1, 2 == 1
-#     # 2, 1 == -1
-#     return end - start
-
-
-# def normalize_inverted(core_full, match_side: str):
-#     if match_side in ("n_i", "s_i"):
-#         return np.fliplr(core_full)
-
-#     elif match_side in ("w_i", "e_i"):
-#         core_full = np.rot90(core_full)  # counter-clockwise
-#         core_full = np.fliplr(core_full)
-#         return np.rot90(core_full, axes=(1, 0))
-
-
-# def get_edge(core, side: str) -> Tuple[str]:
-#     try:
-#         if side == "n":
-#             return tuple([x[len(core) - 1] for x in core])
-#         elif side == "e":
-#             return tuple(core[len(core) - 1])
-#         elif side == "w":
-#             return tuple(core[0])
-#         elif side == "s":
-#             return tuple([x[0] for x in core])
-#     except Exception as e:
-#         import pdb
-
-#         pdb.set_trace()
-
-#     return tuple()
-
-
-# def print_square(square):
-#     square_rows = []
-#     for i in range(len(square)):
-#         rows = [x[i] for x in square]
-#         square_rows.append(np.concatenate(rows, axis=1))
-
-#     # reverse so printing is done correctly
-#     square_rows.reverse()
-
-#     for row in square_rows:
-#         print()
-#         for line in row:
-#             print("".join(line))
-
-
 def test_find_sea_monsters():
-    test_case = """.####...#####..#...###..
-#####..#..#.#.####..#.#.
-.#.#...#.###...#.##.##..
-#.#.##.###.#.##.##.#####
-..##.###.####..#.####.##
-...#.#..##.##...#..#..##
-#.##.#..#.#..#..##.#.#..
-.###.##.....#...###.#...
-#.####.#.#....##.#..#.#.
-##...#..#....#..#...####
-..#.##...###..#.#####..#
-....#.##.#.#####....#...
-..##.##.###.....#.##..#.
-#...#...###..####....##.
-.#.##...#.##.#.#.###...#
-#.###.#..####...##..#...
-#.###...#.##...#.######.
-.###.###.#######..#####.
-..##.#..#..#.#######.###
-#.#..##.########..#..##.
-#.#####..#.#...##..#....
-#....##..#.#########..##
-#...#.....#..##...###.##
-#..###....##.#...##.##.#"""
+    test_case = """.####...#####..#...###.....
+#####..#..#.#.####..#.#....
+.#.#...#.###...#.##.##.....
+#.#.##.###.#.##.##.#####...
+..##.###.####..#.####.##...
+...#.#..##.##...#..#..##...
+#.##.#..#.#..#..##.#.#.....
+.###.##.....#...###.#......
+#.####.#.#....##.#..#.#....
+##...#..#....#..#...####...
+..#.##...###..#.#####..#...
+....#.##.#.#####....#......
+..##.##.###.....#.##..#....
+#...#...###..####....##....
+.#.##...#.##.#.#.###...#...
+#.###.#..####...##..#......
+#.###...#.##...#.######....
+.###.###.#######..#####....
+..##.#..#..#.#######.###...
+#.#..##.########..#..##....
+#.#####..#.#...##..#.......
+#....##..#.#########..##...
+#...#.....#..##...###.##...
+#..###....##.#...##.##.#...
+## #.###...#.##...#.######.
+#####.###.#######.######...
+#.#####.##.##.#######.###..
+..........................."""
 
     rows = [list(x) for x in test_case.split("\n")]
     rows.reverse()
     joined_rows = ["".join(x) for x in rows]
 
     result = find_sea_monsters(joined_rows)
-    print("TEST: find_sea_monster result: ", result)
-    assert result == 2
+    assert result == 3
 
 
-monster_upper_pattern = re.compile(r"#")
-monster_middle_pattern = re.compile(r"#[\.\#]{4}##[\.\#]{4}##[\.\#]{4}###")
-monster_lower_pattern = re.compile(
-    r"#[\.\#]{2}#[\.\#]{2}#[\.\#]{2}#[\.\#]{2}#[\.\#]{2}#"
-)
+def assert_borders_match(square: List[List[T]]):
+    l: int = len(square)
+    sides = ((1, 0), (0, 1), (-1, 0), (0, -1))
+    compared: Set[Tuple[int, int, int, int]] = set()
+
+    # Assert all edges match appropriately
+    for i in range(len(square)):
+        for j in range(len(square)):
+            adjacent_tiles: List[Tuple[int, int]] = [(i + x, j + y) for x, y in sides]
+            valid_tiles = [
+                (x, y)
+                for (x, y) in adjacent_tiles
+                if 0 <= x < l and 0 <= y < l and (i, j, x, y) not in compared
+            ]
+            for x, y in valid_tiles:
+                if not square[x][y].borders & square[i][j].borders:
+                    return False
+                compared.add((i, j, x, y))
+
+    return True
 
 
 def find_sea_monsters(square: List[str]) -> int:
@@ -466,103 +356,122 @@ def find_sea_monsters(square: List[str]) -> int:
     # .O##.#OO.###OO##..OOO##.
     # ..O#.O..O..O.#O##O##.###
 
+    # Couldn't get lookahead searching to work as some of the sea monsters
+    #  are overlapping. I'll save this for another day.
+
+    # monster_upper_pattern = re.compile(r"#")
+    # monster_middle_pattern = re.compile(r"(?=(#[\.\#]{4}##[\.\#]{4}##[\.\#]{4}###))")
+    # monster_lower_pattern = re.compile(
+    #     r"(?=(#[\.\#]{2}#[\.\#]{2}#[\.\#]{2}#[\.\#]{2}#[\.\#]{2}#))"
+    # )
+
     sea_monsters: int = 0
+
+    # matches = re.finditer(monster_middle_pattern, row)
+
+    # for match in matches:
+
+    #     begin, end = match.span()
+
+    #     if i - 1 >= 0 and i + 1 < len(square):
+    #         # Values reversed (above looking forward and lower looking backwards)
+    #         #  because we are iterating over the list of strings in reverse
+    #         upper_matches = re.finditer(monster_upper_pattern, square[i + 1])
+    #         lower_matches = re.finditer(monster_lower_pattern, square[i - 1])
+
+    #         # head location
+    #         upper_found = False
+    #         for m in upper_matches:
+    #             if m.span()[0] == end - 1:
+    #                 upper_found = True
+    #                 break
+
+    #         # bottom location
+    #         lower_found = False
+    #         for m in lower_matches:
+    #             if m.span()[0] == begin + 1:
+    #                 lower_found = True
+    #                 break
+
+    #         if upper_found and lower_found:
+    #             sea_monsters += 1
+
     for i, row in enumerate(square):
 
         # Need an inner row to properly match
         if i in (0, len(square) - 1):
             continue
 
-        matches = re.finditer(monster_middle_pattern, row)
+        for j, char in enumerate(row):
+            if char == "#" and j + 19 < len(row):
 
-        for match in matches:
-            
-            begin, end = match.span()
+                if all(
+                    [
+                        row[j] == "#",
+                        row[j + 5] == "#",
+                        row[j + 6] == "#",
+                        row[j + 11] == "#",
+                        row[j + 12] == "#",
+                        row[j + 17] == "#",
+                        row[j + 18] == "#",
+                        row[j + 19] == "#",
+                        # upper
+                        square[i + 1][j + 18] == "#",
+                        # lower
+                        square[i - 1][j + 1] == "#",
+                        square[i - 1][j + 4] == "#",
+                        square[i - 1][j + 7] == "#",
+                        square[i - 1][j + 10] == "#",
+                        square[i - 1][j + 13] == "#",
+                        square[i - 1][j + 16] == "#",
+                    ]
+                ):
 
-            if i - 1 >= 0 and i + 1 < len(square):
-                # Values reversed (above looking forward and lower looking backwards)
-                #  because we are iterating over the list of strings in reverse
-                upper_matches = re.finditer(monster_upper_pattern, square[i + 1])
-                lower_matches = re.finditer(monster_lower_pattern, square[i - 1])
-
-                # head location
-                upper_found = False
-                for m in upper_matches:
-                    if m.span()[0] == end -1:
-                        upper_found = True
-                        break
-
-                # bottom location
-                lower_found = False
-                for m in lower_matches:
-                    if m.span()[0] == begin + 1:
-                        lower_found = True
-                        break
-                
-                if upper_found and lower_found:
-                    import pdb; pdb.set_trace()
                     sea_monsters += 1
 
     return sea_monsters
 
 
-# def trim_tile(tile):
-#     l = len(tile) - 1
-#     # remove top and bottom
-
-#     tile = np.delete(tile, [0, l], axis=1)
-#     # remove left and right
-#     tile = np.delete(tile, [0, l], axis=0)
-
-#     return tile
-
-
 def test_generate_tile_arrangements():
-    tile = np.full([3, 3], [(1, 2, 3), (4, 5, 6), (7, 8, 9)])
+    tile = np.full([3, 3], [("1", "2", "3"), ("4", "5", "6"), ("7", "8", "9")])
     t = T("1", tile)
-    arrs = t.generate_arrs()
+    arrs = [x for x in t.generate_arrs()]
 
-    # import pdb; pdb.set_trace()
     assert (tile == arrs[0].tile).all()
-    assert (np.full([3, 3], [[3, 2, 1], [6, 5, 4], [9, 8, 7]]) == arrs[1].tile).all()
-    assert (np.full([3, 3], [[7, 8, 9], [4, 5, 6], [1, 2, 3]]) == arrs[2].tile).all()
-    assert (np.full([3, 3], [[7, 4, 1], [8, 5, 2], [9, 6, 3]]) == arrs[3].tile).all()
-    assert (np.full([3, 3], [[9, 6, 3], [8, 5, 2], [7, 4, 1]]) == arrs[4].tile).all()
-    assert (np.full([3, 3], [[1, 4, 7], [2, 5, 8], [3, 6, 9]]) == arrs[5].tile).all()
-    assert (np.full([3, 3], [[9, 8, 7], [6, 5, 4], [3, 2, 1]]) == arrs[6].tile).all()
-    assert (np.full([3, 3], [[3, 6, 9], [2, 5, 8], [1, 4, 7]]) == arrs[7].tile).all()
-
-
-# def generate_tile_arrangements(tile: T) -> List[T]:
-#     # start
-#     # flip horiz
-#     # flip vert
-#     # 1 cw
-#     # 1 cw, flip horiz
-#     # 1 cw, flip vert
-#     # 2 cw
-#     # 3 cw
-
-#     arrangements: List[T] = [
-#         tile,  # 0
-#         np.fliplr(tile),  # 1 -- Technically flipping along 'columns'
-#         np.flip(tile, axis=0),  # 2 -- flipping along rows
-#         np.rot90(tile, axes=(1, 0)),  # 3
-#         np.fliplr(np.rot90(tile, axes=(1, 0))),  # 4
-#         np.flip(np.rot90(tile, axes=(1, 0)), axis=0),  # 5
-#         np.rot90(tile, k=2, axes=(1, 0)),  # 6
-#         np.rot90(tile, k=3, axes=(1, 0)),  # 7
-#     ]
-
-#     return arrangements
+    assert (
+        np.full([3, 3], [["3", "2", "1"], ["6", "5", "4"], ["9", "8", "7"]])
+        == arrs[1].tile
+    ).all()
+    assert (
+        np.full([3, 3], [["7", "8", "9"], ["4", "5", "6"], ["1", "2", "3"]])
+        == arrs[2].tile
+    ).all()
+    assert (
+        np.full([3, 3], [["7", "4", "1"], ["8", "5", "2"], ["9", "6", "3"]])
+        == arrs[3].tile
+    ).all()
+    assert (
+        np.full([3, 3], [["9", "6", "3"], ["8", "5", "2"], ["7", "4", "1"]])
+        == arrs[4].tile
+    ).all()
+    assert (
+        np.full([3, 3], [["1", "4", "7"], ["2", "5", "8"], ["3", "6", "9"]])
+        == arrs[5].tile
+    ).all()
+    assert (
+        np.full([3, 3], [["9", "8", "7"], ["6", "5", "4"], ["3", "2", "1"]])
+        == arrs[6].tile
+    ).all()
+    assert (
+        np.full([3, 3], [["3", "6", "9"], ["2", "5", "8"], ["1", "4", "7"]])
+        == arrs[7].tile
+    ).all()
 
 
 def main(rows: List[str]) -> int:
     tiles = parse_input(rows)
 
     matches: Dict[str, Set[T]] = collections.defaultdict(set)
-
-    # import pdb; pdb.set_trace()
 
     # generate all permutations of tiles
     full_set: List[T] = []
@@ -575,27 +484,9 @@ def main(rows: List[str]) -> int:
             if left_tile.id == right_tile.id:
                 continue
 
-            if len(set(left_tile.edges()) & set(right_tile.edges())):
+            if len(left_tile.borders & right_tile.borders):
                 matches[left_tile.id].add(right_tile)
                 matches[right_tile.id].add(left_tile)
-
-    # print(matches)
-    # import pdb; pdb.set_trace()
-    # sys.exit(1)
-
-    # for l_tile_number, l_image_data in images.items():
-    #     for l_key, l_data in l_image_data.items():
-    #         for r_tile_number, r_image_data in images.items():
-    #             for r_key, r_data in r_image_data.items():
-    #                 if (
-    #                     r_tile_number == l_tile_number
-    #                     or l_key.startswith("core")
-    #                     or r_key.startswith("core")
-    #                 ):
-    #                     continue
-    #                 if l_data == r_data:
-    #                     matches[l_tile_number].add(r_tile_number)
-    #                     matches[r_tile_number].add(l_tile_number)
 
     # Matches is dict of tile numbers to a set of Tuple pairs which match
     #  an edge of the titular tile number to another tile.
@@ -639,12 +530,6 @@ def main(rows: List[str]) -> int:
                     square[x][y] = tile
                     break
 
-        else:
-            # fuck
-            import pdb
-
-            pdb.set_trace()
-
         # Wrap up for next iteration
         prev_tile: Optional[T] = square[x][y]
         available_tiles.remove(square[x][y])
@@ -654,64 +539,25 @@ def main(rows: List[str]) -> int:
         else:
             x, y = x + 1, y
 
-    print(square)
 
-    # Have complete square, now need to rotate tiles to ensure row alignment
+    # Have complete square, now need to rotate tiles to ensure border alignment
     square_filled = np.full((sq, sq), None)
 
     init = False
     for left_tile in square[0][0].generate_arrs():
         for right_tile in square[1][0].generate_arrs():
-            for i, left_side in enumerate(left_tile.edges()):
-                for j, right_side in enumerate(right_tile.edges()):
-                    # print(left_tile.id, left_side, right_tile.id, right_side)
-                    # if set(left_side) & right_side:
-                    # Want eastern edge for left and western for right
-                    # print(left_tile.id, left_tile.side('e'), right_tile.id, right_tile.side('w'), right_tile.edges())
-                    # if left_tile.side('e') in right_tile.edges():
-                    if left_tile.side("e") == right_tile.side("w"):
-
-                        # while left_tile.side('e') != right_tile.side('w'):
-                        #     import pdb; pdb.set_trace()
-                        #     right_tile.rotate(1)
-
-                        square_filled[0][0] = left_tile
-                        square_filled[1][0] = right_tile
-                        init = True
-                        break
+            if left_tile.right == right_tile.left:
+                square_filled[0][0] = left_tile
+                square_filled[1][0] = right_tile
+                init = True
+                break
 
         if init:
             break
-    else:
-        # fuck
-        import pdb
 
-        pdb.set_trace()
-
-    # Handle first two: (0,0) & (1,0)
-    # for left, right in itertools.permutations(
-    #     ["n", "e", "s", "w", "n_i", "e_i", "w_i", "s_i"], r=2
-    # ):
-    #     left_tile = transform_core(images[square[0][0]]["core_full"], left, "e")
-    #     right_tile = transform_core(images[square[1][0]]["core_full"], right, "w")
-
-    #     if get_edge(left_tile, "e") == get_edge(right_tile, "w"):
-    #         square_filled[0][0] = left_tile
-    #         square_filled[1][0] = right_tile
-    #         break
-    # else:
-    #     # wtf
-    #     import pdb
-
-    #     pdb.set_trace()
-
-    print("First two set")
     x, y = 0, 0
-    prev_tile = None
+    prev_tile: Optional[T] = None
     while not np.all(square_filled):
-        # print(x, y, square_filled)
-        # for y in range(0, len(square)):
-        #     for x in range(0, len(square)):
 
         # If already placed, ignore, (0,0) and (1,0)
         if square_filled[x][y] is not None:
@@ -724,127 +570,60 @@ def main(rows: List[str]) -> int:
         #  square
         if y == 0:
             prev_tile = square_filled[x - 1][y]
-            prev_tile_e_edge = prev_tile.side("e")
-            # for dir in ("n", "e", "s", "w", "n_i", "e_i", "w_i", "s_i"):
-            #     tile_n = square[x][y]
-            #     tile = transform_core(images[square[x][y]]["core_full"], dir, "w")
-            #     tile_core = transform_core(images[square[x][y]]["core"], dir, "w")
-            #     if get_edge(tile, "w") == prev_tile_e_edge:
-            #         square_filled[x][y] = tile
-            #         break
+            prev_tile_e_edge: str = prev_tile.right
+
             for right_tile in square[x][y].generate_arrs():
-                # print(
-                #     prev_tile.id,
-                #     prev_tile.side("e"),
-                #     right_tile.id,
-                #     right_tile.side("w"),
-                # )
-                if prev_tile_e_edge == right_tile.side("w"):
+                if prev_tile_e_edge == right_tile.left:
                     square_filled[x][y] = right_tile
                     break
-            else:
-                import pdb
-
-                pdb.set_trace()
-                sys.exit(1)
 
         # If we are on any row above the first one we want to match on the 's' side of the
         # square to match the prior row
         elif y > 0:
             prev_tile = square_filled[x][y - 1]
-            prev_tile_n_edge = prev_tile.side("n")
-            # for dir in ("n", "e", "s", "w", "n_i", "e_i", "w_i", "s_i"):
-            #     tile_n = square[x][y]
-            #     tile = transform_core(images[square[x][y]]["core_full"], dir, "s")
-            #     tile_core = transform_core(images[square[x][y]]["core"], dir, "s")
-            #     if get_edge(tile, "s") == prev_tile_n_edge:
-            #         square_filled[x][y] = tile
-            #         break
-            for right_tile in square[x][y].generate_arrs():
-                # print(
-                #     x,
-                #     y,
-                #     prev_tile.id,
-                #     prev_tile.side("n"),
-                #     right_tile.id,
-                #     right_tile.edges(),
-                # )
-                if prev_tile_n_edge == right_tile.side("s"):
+            prev_tile_n_edge: str = prev_tile.top
 
+            # if sq > 3:
+            # import pdb; pdb.set_trace()
+
+            for right_tile in square[x][y].generate_arrs():
+                if prev_tile_n_edge == right_tile.bottom:
                     square_filled[x][y] = right_tile
                     break
+            else:
+                # If we don't break out of prior for loop,
+                #  then the current rows need to be flipped
+                #  if this is encountered above y = 1, then we
+                #  just flip the starting two and restart for simplicity
+                if y == 1:
+                    for i in range(sq):
+                        square_filled[i][0].flip_horiz()
+                else:
+                    first = square_filled[0][0].flip_horiz()
+                    second = square_filled[1][0].flip_horiz()
+                    square_filled = np.full((sq, sq), None)
+                    square_filled[0][0] = first
+                    square_filled[1][0] = second
+                    x = 2
+                    y = 0
 
-            # if square_filled[x][y] is None:
-            #     # Need to flip the previous row
-            #     for i in range(sq):
-            #         square_filled[x][y - 1] = np.flip(
-            #             square_filled[x][y - 1], axis=1
-            #         )
-
-            # prev_tile = square_filled[x][y - 1]
-            # prev_tile_n_edge = get_edge(prev_tile, "n")
-            # for dir in ("n", "e", "s", "w", "n_i", "e_i", "w_i", "s_i"):
-            #     tile_n = square[x][y]
-            #     tile = transform_core(images[square[x][y]]["core_full"], dir, "s")
-            #     tile_core = transform_core(images[square[x][y]]["core"], dir, "s")
-            #     if get_edge(tile, "s") == prev_tile_n_edge:
-            #         square_filled[x][y] = tile
-            #         break
-
-            # If we've arrived here and we are upwards in the square, then we might need
-            # to flip the previou rows?
-            # if y > 0:
-            #     for i in range(y):
-            #         for j in range(sq):
-            #             square_filled[j][i].flip_vert()
-
-        # print(x, y, square[x][y])
-        # print(square_filled[x][y])
-
-    # Assert all edges match appropriately
-    for i in range(len(square_filled)):
-        for j in range(len(square_filled)):
-            if j < len(square_filled) - 1:
-                print(
-                    j,
-                    i,
-                    square_filled[j][i].side("e"),
-                    j + 1,
-                    i,
-                    square_filled[j + 1][i].side("w"),
-                )
-                assert square_filled[j][i].side("e") == square_filled[j + 1][i].side(
-                    "w"
-                )
-
-            if i < len(square_filled) - 1:
-                print(
-                    j,
-                    i,
-                    square_filled[j][i].side("n"),
-                    j,
-                    i + 1,
-                    square_filled[j][i + 1].side("s"),
-                )
-                assert square_filled[j][i].side("n") == square_filled[j][i + 1].side(
-                    "s"
-                )
+    # Ensure that all borders match
+    assert assert_borders_match(square_filled)
 
     # Concat horizontonally each tile
-    square_rows = []
-    for i in range(len(square_filled) - 1, -1, -1):
-        import pdb; pdb.set_trace()      
+    square_rows: List[Any] = []
+    for i in range(len(square_filled)):
         tile_rows = [x[i].trimmed for x in square_filled]
         square_rows.append(np.concatenate(tile_rows))
 
-    
-    # Concat the rows into a final giant tile square
-    final_square = np.concatenate(square_rows, axis=1)
+    # Concat the rows into a final giant tile square and rotate ccw
+    #  because
+    final_square = np.rot90(np.concatenate(square_rows, axis=1))
 
     # Finally will need to try all rotations and flips to search for sea monster
-    monsters: int = 0
+    max_monsters: int = 0
     mod_final_square: T = T(0, final_square.copy())
-    final_arrangements: List[T] = mod_final_square.generate_arrs()
+    final_arrangements = mod_final_square.generate_arrs()
     for i, arr in enumerate(final_arrangements):
         tile = arr.tile
         monsters = find_sea_monsters(["".join(x) for x in tile])
@@ -852,10 +631,10 @@ def main(rows: List[str]) -> int:
         if monsters > 0:
             with open(f"output-{i}", "w") as o:
                 o.writelines(["".join(x) + "\n" for x in tile])
-            break
 
-    print("Monsters found: ", monsters)
-    monster_value: int = monsters * 14
+        max_monsters = max(monsters, max_monsters)
+
+    monster_value: int = max_monsters * 15
 
     hashes: int = 0
     for row in final_square:
