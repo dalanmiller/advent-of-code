@@ -64,9 +64,14 @@ func (dadr DoubleAdjacentDigitRuleTwo) validate(input int) bool {
 		}
 		_, ok := runs[char]
 		if rune(string_input[i-1]) == char {
+
+			// If we haven't seen this number before, it means we have
+			//  our first pair
 			if !ok {
 				runs[char] = 2
+
 			} else {
+				// Otherwise we are continuing an already seen run
 				runs[char]++
 			}
 		}
