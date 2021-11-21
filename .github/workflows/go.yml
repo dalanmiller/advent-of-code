@@ -1,0 +1,23 @@
+name: 2019 Go tests
+
+defaults:
+  run:
+    working-directory: "2019"
+
+on:
+  push:
+    paths: "2019/**/*" 
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Test
+      run: cd 2019; go test -v ./2019/...
