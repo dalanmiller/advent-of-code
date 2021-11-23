@@ -38,28 +38,27 @@ func one_one() int {
 	for _, req := range fuel_requirements {
 		result += req
 	}
-	log.Printf("one_one result: %d\n", result)
+	// log.Printf("one_one result: %d\n", result)
 
 	return result
 }
-	
 
 func calculate_fuel_requirement(mass float64, cache map[float64]float64) int {
-		result := (float64(mass) / 3) - 2
-		
-		if result <= 0 {
-			return 0
-		} else if _, ok := cache[result]; ok { 
-			result = result + cache[result]
-		} else {
-			sub_result := float64(calculate_fuel_requirement(result, cache))
-			cache[result] = sub_result
-			result = result + sub_result
-		}
-	
-		return int(result)
+	result := (float64(mass) / 3) - 2
+
+	if result <= 0 {
+		return 0
+	} else if _, ok := cache[result]; ok {
+		result = result + cache[result]
+	} else {
+		sub_result := float64(calculate_fuel_requirement(result, cache))
+		cache[result] = sub_result
+		result = result + sub_result
 	}
-	
+
+	return int(result)
+}
+
 func calculate_fuel_fuel_requiements() []int {
 	fuel_requirements := Calculate_fuel_requirements()
 
@@ -68,8 +67,8 @@ func calculate_fuel_fuel_requiements() []int {
 
 	for _, req := range fuel_requirements {
 		fuel_required_for_fuel := calculate_fuel_requirement(float64(req), cache)
-		results = append(results, req + fuel_required_for_fuel)
-		log.Println(req, fuel_required_for_fuel)
+		results = append(results, req+fuel_required_for_fuel)
+		// log.Println(req, fuel_required_for_fuel)
 	}
 
 	return results
@@ -91,4 +90,3 @@ func main() {
 	one_one()
 	one_two()
 }
-	
