@@ -14,7 +14,7 @@ type Orbit struct {
 	Orbits []*Planet
 }
 
-func descend(depth int, planets []*Planet, orbitalMap map[*Planet]Orbit) {
+func descend(depth int, planets []*Planet, orbitalMap map[*Planet]*Orbit) {
 	for _, planet := range planets {
 		planet.Distance = depth
 
@@ -24,9 +24,43 @@ func descend(depth int, planets []*Planet, orbitalMap map[*Planet]Orbit) {
 	}
 }
 
-func run(input string) int {
+func find(search string, root_planet *Planet, orbitalMap map[*Planet]*Orbit) []*Planet {
+	planets := orbitalMap[root_planet].Orbits
+	for _, planet := range planets {
+		if forward_path, ok := path(search, planet, orbitalMap); ok {
+			return append([]*Planet{root_planet}, forward_path...)
+		}
+	}
+	return nil
+}
 
-	orbitalMap := make(map[*Planet]Orbit)
+func path(search string, current_planet *Planet, orbitalMap map[*Planet]*Orbit) ([]*Planet, bool) {
+	planets := orbitalMap[current_planet].Orbits
+	for _, planet := range planets {
+
+		// if planet is the one we are searching for,
+		// . return immediately and start constructing path
+		if planet.Name == search {
+			return []*Planet{current_planet, planet}, true
+		}
+
+		// If planet has no orbiters, skip
+		_, ok := orbitalMap[planet]
+		if !ok {
+			continue
+		}
+
+		if forward_path, ok := path(search, planet, orbitalMap); ok {
+			return append([]*Planet{current_planet}, forward_path...), true
+		}
+	}
+
+	return nil, false
+}
+
+func run(input string) (int, int) {
+
+	orbitalMap := make(map[*Planet]*Orbit)
 	planetMap := make(map[string]*Planet)
 
 	orbits := strings.Split(input, "\n")
@@ -64,7 +98,7 @@ func run(input string) int {
 		if o1, ok := orbitalMap[p1]; ok {
 			o1.Orbits = append(o1.Orbits, p2)
 		} else {
-			orbitalMap[p1] = Orbit{
+			orbitalMap[p1] = &Orbit{
 				Planet: p1,
 				Orbits: []*Planet{p2},
 			}
@@ -80,5 +114,46 @@ func run(input string) int {
 		sum += v.Distance
 	}
 
-	return sum
+	delta_distance := 0
+	if _, ok := planetMap["YOU"]; ok {
+		you_path := find("YOU", com, orbitalMap)
+		santa_path := find("SAN", com, orbitalMap)
+
+		if you_path == nil || santa_path == nil {
+			return sum, 0
+		}
+
+		// Traverse fewer nodes
+		seen := make(map[*Planet]int)
+		var shorter, longer []*Planet
+		if len(you_path) < len(santa_path) {
+			shorter = you_path
+			longer = santa_path
+		} else {
+			shorter = you_path
+			longer = santa_path
+		}
+
+		// Add seen planets to seen set
+		for i, planet := range shorter {
+			seen[planet] = i
+		}
+
+		// Determine farthest intersecting planet in paths
+		max := -1
+		var max_planet *Planet
+		for _, planet := range longer {
+			if j, ok := seen[planet]; ok && j > max {
+				max = j
+				max_planet = planet
+			}
+		}
+
+		you_distance := planetMap["YOU"].Distance - 1
+		santa_distance := planetMap["SAN"].Distance - 1
+		max_distance := max_planet.Distance
+		delta_distance = you_distance - max_distance + santa_distance - max_distance
+	}
+
+	return sum, delta_distance
 }
