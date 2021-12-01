@@ -1,12 +1,12 @@
-name: 2019 Go tests
+name: 2021 Go tests
 
 defaults:
   run:
-    working-directory: "2019"
+    working-directory: "2021"
 
 on:
   push:
-    paths: "2019/**/*" 
+    paths: "2021/**/*"
     
 jobs:
   build:
