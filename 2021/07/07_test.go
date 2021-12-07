@@ -100,7 +100,7 @@ func TestSevenTwo(t *testing.T) {
 	}
 }
 
-func BenchmarkRunWithMin(b *testing.B) {
+func BenchmarkRun(b *testing.B) {
 	file, _ := os.ReadFile("./input")
 
 	for i := 0; i < b.N; i++ {

@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -15,6 +20,11 @@ func main() {
 		log.Fatal("No dirs")
 	}
 
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	var max int
 	for _, dir := range list {
 		if dir.IsDir() {
@@ -22,7 +32,6 @@ func main() {
 			if err != nil {
 				log.Fatalf("Not convertable to int %s", dir.Name())
 			}
-			log.Println(n)
 			if n > max {
 				max = n
 			}
@@ -39,7 +48,7 @@ func main() {
 	new_test_file_path := fmt.Sprintf("%02d/%02d_test.go", max, max)
 	err = os.WriteFile(new_file_path, []byte(`package main
 	
-	func run() int {
+	func run(input string) int {
 
 	}`), 0777)
 	if err != nil {
@@ -49,10 +58,10 @@ func main() {
 	
 func TestExamplesOneOne(t *testing.T) {
 	tests := []struct {
-		test     int
+		test     string
 		expected int
 	}{ 
-		{0, 0},
+		{"", 0},
 	}
 
 	for _, test := range tests {
@@ -70,15 +79,15 @@ func TestOneOne(t *testing.T) {
 	}
 
 	tests := []struct {
-		test int
+		test string
 		expected  int
 	}{
-		{0, 0},
+		{string(file), 0},
 	}
 
 	for _, test := range tests {
 		result := run(test.test)
-		if result[0] != test.expected {
+		if result != test.expected {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}
 	}
@@ -86,10 +95,10 @@ func TestOneOne(t *testing.T) {
 
 func TestExamplesOneTwo(t *testing.T) {
 	tests := []struct {
-		test     int
+		test     string
 		expected int
 	}{ 
-		{0, 0},
+		{"", 0},
 	}
 
 	for _, test := range tests {
@@ -107,10 +116,10 @@ func TestOneTwo(t *testing.T) {
 	}
 
 	tests := []struct {
-		test int
+		test string
 		expected  int
 	}{
-		{0, 0},
+		{string(file), 0},
 	}
 
 	for _, test := range tests {
@@ -119,11 +128,33 @@ func TestOneTwo(t *testing.T) {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}
 	}
-}
-
-		
-	`), 0777)
+}`), 0777)
 	if err != nil {
 		log.Fatalf("Error creating new go test file %s", new_file_path)
+	}
+
+	header := http.Header{}
+	header.Set("Cookie", os.Getenv("session"))
+	url, _ := url.Parse(fmt.Sprintf("https://adventofcode.com/2021/day/%d/input", max))
+	request := &http.Request{
+		URL:    url,
+		Header: header,
+	}
+
+	client := http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Fatalf("Unable to request input file")
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode > 299 {
+		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", resp.StatusCode, body)
+	}
+	input_file_path := fmt.Sprintf("%02d/input", max)
+	err = os.WriteFile(input_file_path, body, 0777)
+	if err != nil {
+		log.Fatalf("Unable to write input resp body to input file")
 	}
 }

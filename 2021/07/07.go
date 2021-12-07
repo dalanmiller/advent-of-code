@@ -33,10 +33,8 @@ func calculateFuelRequirement(distance int, numCrabs int, memo map[int]int) int 
 		return val * numCrabs
 	}
 
-	v := 0
-	for i := 1; i <= distance; i++ {
-		v += i
-	}
+	// Sum of all values between 1 -> distance
+	v := distance * (distance + 1) / 2
 
 	memo[distance] = v
 	return v * numCrabs
