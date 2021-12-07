@@ -27,7 +27,7 @@ func run(input string, days int) int {
 		fishCounts[fish]++
 	}
 
-	// It took me a stupidly and embarssingly
+	// It took me a stupidly and embarassingly
 	// long time to get this right
 	for i := 0; i < days; i++ {
 		fishCounts[9] = fishCounts[0]
