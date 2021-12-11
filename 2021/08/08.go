@@ -9,13 +9,6 @@ import (
 type Signal struct {
 	Segments int
 	Raw      string
-	A        bool
-	B        bool
-	C        bool
-	D        bool
-	E        bool
-	F        bool
-	G        bool
 	N        string
 }
 
@@ -33,17 +26,6 @@ type Row struct {
 // 5 => 5, 3, 2
 // 6 => 6, 0, 9
 // 7 => 8
-
-var segmentValueMap = map[int][]int{
-	0: {0},
-	1: {0},
-	2: {1},
-	3: {7},
-	4: {4},
-	5: {2, 3, 5},
-	6: {0, 6, 9},
-	7: {8},
-}
 
 // For each wire "A, B, C, ...", is incorrectly lighting up SEGMENT A, B, C.... etc.
 // First layer: deduce based on digits with unique segment counts 1, 7, 4, 8
@@ -66,28 +48,12 @@ func (s sortRuneString) Len() int {
 func parseSignalsString(signal string) Signal {
 	runeSlice := []rune(signal)
 	sort.Sort(sortRuneString(runeSlice))
-	s := Signal{
-		Segments: len(signal),
-		Raw:      string(runeSlice),
-	}
-	for _, char := range signal {
-		switch char {
-		case 'a':
-			s.A = true
-		case 'b':
-			s.B = true
-		case 'c':
-			s.C = true
-		case 'd':
-			s.D = true
-		case 'e':
-			s.E = true
-		case 'f':
-			s.F = true
-		}
-	}
+	sortedCleaned := strings.TrimLeft(string(runeSlice), "\t")
 
-	return s
+	return Signal{
+		Segments: len(sortedCleaned),
+		Raw:      sortedCleaned,
+	}
 }
 
 func parseInput(input string) []Row {
@@ -137,8 +103,6 @@ func intersect(a Signal, b Signal) ([]rune, []rune) {
 
 		if ok {
 			intersection = append(intersection, chr)
-		} else {
-			difference = append(difference, chr)
 		}
 
 		delete(seen_a, chr)
@@ -172,10 +136,11 @@ func run_two(input string) int {
 
 	var sum int
 	for _, row := range rows {
+		// log.Printf("Row - %d", i)
 		signals := row.Signals
 		outputs := row.Outputs
 
-		var One, Two, Three, Four, Five, Six, Seven, Eight, Nine Signal
+		var Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine Signal
 		var unknown []Signal
 		for _, signal := range signals {
 			switch signal.Segments {
@@ -200,14 +165,14 @@ func run_two(input string) int {
 			if unk.Segments == 5 {
 				// 5, 3, or 2 henceforth
 				_, d := intersect(unk, One)
-				if len(d) == 5 {
+				if len(d) == 4 {
 					// 2 or 5
 					_, d := intersect(unk, Four)
-					if len(d) == 5 {
+					if len(d) == 3 {
 						//2
 						Two = unk
 						Two.N = "2"
-					} else if len(d) == 2 {
+					} else { // 2 difference
 						//5
 						Five = unk
 						Five.N = "5"
@@ -219,18 +184,18 @@ func run_two(input string) int {
 
 			} else {
 				// 0, 6, or 9 henceforth
-				_, d := intersect(unk, Eight)
-				if len(d) == 1 {
+				_, d := intersect(unk, Seven)
+				if len(d) == 3 {
 					// 0 or 9 henceforth
-					_, d := intersect(unk, One)
-					if len(d) == 4 {
+					_, d := intersect(unk, Four)
+					if len(d) == 2 {
 						// 9
 						Nine = unk
 						Nine.N = "9"
 					} else {
 						// 5
-						Five = unk
-						Five.N = "5"
+						Zero = unk
+						Zero.N = "0"
 					}
 
 				} else {
@@ -241,8 +206,10 @@ func run_two(input string) int {
 			}
 		}
 
+		// Need to deduce final Signal based on one not found
+
 		signalMap := make(map[string]Signal)
-		for _, signal := range []Signal{One, Two, Three, Four, Five, Six, Seven, Eight, Nine} {
+		for _, signal := range []Signal{Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine} {
 			signalMap[signal.Raw] = signal
 		}
 

@@ -42,13 +42,13 @@ func TestIntersection(t *testing.T) {
 			[]Signal{{Raw: "a"}, {Raw: "a"}}, []rune{'a'}, nil,
 		},
 		{
-			[]Signal{{Raw: "abc"}, {Raw: "cde"}}, []rune{'c'}, []rune{'d', 'e', 'a', 'b'},
+			[]Signal{{Raw: "abc"}, {Raw: "cde"}}, []rune{'c'}, []rune{'a', 'b'},
 		},
 		{
-			[]Signal{{Raw: "abc"}, {Raw: "zzz"}}, nil, []rune{'z', 'z', 'z', 'a', 'b', 'c'},
+			[]Signal{{Raw: "abc"}, {Raw: "zzz"}}, nil, []rune{'a', 'b', 'c'},
 		},
 		{
-			[]Signal{{Raw: "ab"}, {Raw: "defbc"}}, []rune{'b'}, []rune{'d', 'e', 'f', 'c', 'a'},
+			[]Signal{{Raw: "ab"}, {Raw: "defbc"}}, []rune{'b'}, []rune{'a'},
 		},
 	}
 
@@ -110,23 +110,23 @@ func TestExamplesEightTwo(t *testing.T) {
 	}
 }
 
-// func TestOneTwo(t *testing.T) {
-// 	file, err := os.ReadFile("./input")
-// 	if err != nil {
-// 		log.Fatalf("could not read file")
-// 	}
+func TestEightTwo(t *testing.T) {
+	file, err := os.ReadFile("./input")
+	if err != nil {
+		log.Fatalf("could not read file")
+	}
 
-// 	tests := []struct {
-// 		test     string
-// 		expected int
-// 	}{
-// 		{string(file), 0},
-// 	}
+	tests := []struct {
+		test     string
+		expected int
+	}{
+		{string(file), 1007675},
+	}
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if result[0] != test.expected {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	for _, test := range tests {
+		result := run_two(test.test)
+		if result != test.expected {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}
