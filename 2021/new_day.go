@@ -134,7 +134,7 @@ func TestOneTwo(t *testing.T) {
 	}
 
 	header := http.Header{}
-	header.Set("Cookie", os.Getenv("session"))
+	header.Set("Cookie", fmt.Sprintf("session=%s", os.Getenv("session")))
 	url, _ := url.Parse(fmt.Sprintf("https://adventofcode.com/2021/day/%d/input", max))
 	request := &http.Request{
 		URL:    url,
