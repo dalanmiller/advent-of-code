@@ -119,7 +119,7 @@ func TestElevenTwo(t *testing.T) {
 		days     int
 		expected int
 	}{
-		{string(file), 1000, 998},
+		{string(file), 1000, 788},
 	}
 
 	for _, test := range tests {
