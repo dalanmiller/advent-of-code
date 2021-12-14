@@ -90,8 +90,6 @@ func parseInput(input string) []Row {
 }
 
 func intersect(a Signal, b Signal) ([]rune, []rune) {
-	// segments := []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g'}
-
 	seen_a := make(map[rune]bool)
 	for _, chr := range a.Raw {
 		seen_a[chr] = true
@@ -108,9 +106,15 @@ func intersect(a Signal, b Signal) ([]rune, []rune) {
 		delete(seen_a, chr)
 	}
 
+	keySlice := make([]rune, 0, len(seen_a))
 	for k, _ := range seen_a {
-		difference = append(difference, k)
+		keySlice = append(keySlice, k)
 	}
+	sort.Slice(keySlice, func(a, b int) bool {
+		return int(keySlice[a]) < int(keySlice[b])
+	})
+
+	difference = append(difference, keySlice...)
 
 	return intersection, difference
 }
