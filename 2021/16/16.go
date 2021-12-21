@@ -9,12 +9,25 @@ import (
 
 type Packet struct {
 	Data         string
-	Type         int
+	Type         PacketType
 	LengthTypeId int
-	Value        int
+	Value        int64
 	Version      int
 	Children     []*Packet
 }
+
+type PacketType int
+
+const (
+	TYPE_SUM PacketType = iota
+	TYPE_PROD
+	TYPE_MIN
+	TYPE_MAX
+	TYPE_LITERAL
+	TYPE_GREATERTHAN
+	TYPE_LESSERTHAN
+	TYPE_EQUALTO
+)
 
 func hexToBinaryString(input string) string {
 
@@ -29,31 +42,24 @@ func hexToBinaryString(input string) string {
 }
 
 func (p *Packet) parsePacketHeader() {
-	version := p.Data[:3]
-	typeId := p.Data[3:6]
-
-	versionValue, _ := strconv.ParseInt(version, 2, 32)
-	typeValue, _ := strconv.ParseInt(typeId, 2, 32)
+	versionValue, _ := strconv.ParseInt(p.Data[:3], 2, 32)
+	typeValue, _ := strconv.ParseInt(p.Data[3:6], 2, 32)
 
 	p.Version = int(versionValue)
-	p.Type = int(typeValue)
+	p.Type = PacketType(typeValue)
 }
 
 func (p *Packet) parsePacket() int {
-	// If only 000s just return and provide value
-	//  to eat rest of packet bitfield
-	if strings.Count(p.Data, "0") == len(p.Data) {
-		return len(p.Data)
-	}
-
 	// Parse version and type
 	p.parsePacketHeader()
 
 	// Then act on literal or operator packet
-	if p.Type == 4 {
+	if p.Type == TYPE_LITERAL {
 		return p.parseLiteralPacket()
 	} else {
-		return p.parseOperatorPacket()
+		n := p.parseOperatorPacket()
+		p.evaluate()
+		return n
 	}
 }
 
@@ -63,7 +69,7 @@ func (p *Packet) parseLiteralPacket() int {
 	var end int
 	for i := 6; i < len(p.Data); i += 5 {
 		chunk := p.Data[i : i+5]
-		bitFields = append(bitFields, chunk)
+		bitFields = append(bitFields, chunk[1:])
 
 		if strings.HasPrefix(chunk, "0") {
 			end = i + 5
@@ -71,9 +77,10 @@ func (p *Packet) parseLiteralPacket() int {
 		}
 	}
 
-	v, _ := strconv.ParseInt(strings.Join(bitFields, ""), 2, 32)
+	fullBitField := strings.Join(bitFields, "")
+	v, _ := strconv.ParseInt(fullBitField, 2, 64)
 
-	p.Value = int(v)
+	p.Value = v
 	return end
 }
 
@@ -109,80 +116,90 @@ func (p *Packet) parseOperatorPacket() int {
 			nPackets++
 		}
 	}
+	return used
+}
 
+func (p *Packet) evaluate() {
 	switch p.Type {
-	case 0:
-		var sum int
+	case TYPE_SUM: // Sum
+		var sum int64
 		for _, child := range p.Children {
 			sum += child.Value
 		}
 		p.Value = sum
-	case 1:
-		prod := 1
+	case TYPE_PROD: // Prod
+		prod := int64(1)
 		for _, child := range p.Children {
 			prod *= child.Value
 		}
 		p.Value = prod
-	case 2:
-		min := math.MaxInt
+	case TYPE_MIN: // Min
+		min := int64(math.MaxInt64)
 		for _, child := range p.Children {
 			if min > child.Value {
 				min = child.Value
 			}
 		}
 		p.Value = min
-	case 3:
-		var max int
+	case TYPE_MAX: // Max
+		var max int64
 		for _, child := range p.Children {
 			if max < child.Value {
 				max = child.Value
 			}
 		}
 		p.Value = max
-	case 5:
+	case TYPE_GREATERTHAN: // GT
 		if p.Children[0].Value > p.Children[1].Value {
 			p.Value = 1
 		} else {
 			p.Value = 0
 		}
-	case 6:
+	case TYPE_LESSERTHAN: // LT
 		if p.Children[0].Value < p.Children[1].Value {
 			p.Value = 1
 		} else {
 			p.Value = 0
 		}
-	case 7:
+	case TYPE_EQUALTO: // EQ
 		if p.Children[0].Value == p.Children[1].Value {
 			p.Value = 1
 		} else {
 			p.Value = 0
 		}
 	}
-
-	return used
 }
 
-func sumVersions(p *Packet) int {
+func sumVersions(p *Packet) int64 {
 
-	var sum int
+	var sum int64
 	for _, child := range p.Children {
 		sum += sumVersions(child)
 	}
 
-	return p.Version + sum
+	return int64(p.Version) + sum
 }
 
-func run(input string, returnValue bool) int {
+// func debugPartTwo(p *Packet) {
+// 	log.Printf("Root - V: %d T: %d Val: %d", p.Version, p.Type, p.Value)
+// 	for _, packet := range p.Children {
+// 		log.Printf("V: %d T: %d Val: %d", packet.Version, packet.Type, packet.Value)
+// 	}
+// }
+
+func run(input string, returnValue bool) int64 {
 	message := hexToBinaryString(input)
 
 	p := Packet{
 		Data: message,
 	}
 	p.parsePacket()
+	p.evaluate()
 
 	if !returnValue {
 		return sumVersions(&p)
 	} else {
-		return p.Value
+		// debugPartTwo(&p)
+		return int64(p.Value)
 	}
 }
