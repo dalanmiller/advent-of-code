@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"container/heap"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -10,18 +11,44 @@ import (
 type Grid [][]*Node
 
 type Node struct {
-	Coord Coord
-	Risk  int
-	// PathRisk int
-	Adj []*Node
-
+	Coord    Coord
+	Risk     int
+	PathRisk int
+	Adj      []*Node
 	Terminal bool
-	// Parent   *Node
 }
 
 type Coord struct {
 	X int
 	Y int
+}
+
+type LowRiskQueue []*Node
+
+func (lrq LowRiskQueue) Len() int {
+	return len(lrq)
+}
+
+func (lrq LowRiskQueue) Less(i, j int) bool {
+	return lrq[i].PathRisk < lrq[j].PathRisk
+}
+
+func (lrq LowRiskQueue) Swap(i, j int) {
+	lrq[i], lrq[j] = lrq[j], lrq[i]
+}
+
+func (lrq *LowRiskQueue) Push(x interface{}) {
+	node := x.(*Node)
+	*lrq = append(*lrq, node)
+}
+
+func (lrq *LowRiskQueue) Pop() interface{} {
+	old := *lrq
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil // avoid memory leak
+	*lrq = old[0 : n-1]
+	return item
 }
 
 func adjacentCoords(i, j, width, height int) []Coord {
@@ -47,51 +74,39 @@ func adjacentCoords(i, j, width, height int) []Coord {
 	return validCoords
 }
 
-func retracePath(m map[Coord]Coord) {
-	ok := true
-	var c Coord
-	oc := Coord{X: 0, Y: 0}
-	for ok {
-		c, ok = m[oc]
-		log.Printf("(%d, %d) => (%d, %d)", oc.X, oc.Y, c.X, c.Y)
-		oc = c
-	}
-}
+// func retracePath(m map[Coord]Coord) {
+// 	ok := true
+// 	var c Coord
+// 	oc := Coord{X: 0, Y: 0}
+// 	for ok {
+// 		c, ok = m[oc]
+// 		log.Printf("(%d, %d) => (%d, %d)", oc.X, oc.Y, c.X, c.Y)
+// 		oc = c
+// 	}
+// }
 
 func aStar(start *Node) int {
 
-	open := []*Node{start}
-	openContents := map[Coord]bool{
-		start.Coord: true,
-	}
+	lrq := LowRiskQueue{}
+	heap.Init(&lrq)
+	heap.Push(&lrq, start)
+
+	start.PathRisk = 0
 	cameFrom := make(map[Coord]Coord)
 	gScore := map[Coord]int{
 		start.Coord: 0,
 	}
 
-	for len(open) > 0 {
+	for lrq.Len() > 0 {
 
 		// Find min node in the open list
-		current := open[0]
-
-		// Pop min node from open list
-		open = open[1:]
-		delete(openContents, current.Coord)
-		cx := Coord{2, 2}
-		if current.Coord == cx {
-			log.Printf("Welp")
-		}
+		current := heap.Pop(&lrq).(*Node)
 
 		for _, adjNode := range current.Adj {
 
-			cy := Coord{4, 2}
-			cyy := Coord{3, 2}
-			if adjNode.Coord == cy || current.Coord == cyy {
-				log.Printf("Welp2")
-			}
 			if adjNode.Terminal {
 				v := gScore[current.Coord]
-				retracePath(cameFrom)
+				// retracePath(cameFrom)
 				return v + adjNode.Risk
 			}
 
@@ -102,15 +117,9 @@ func aStar(start *Node) int {
 			if !ok || tentativeRisk < gScore[adjNode.Coord] {
 				cameFrom[current.Coord] = adjNode.Coord
 				gScore[adjNode.Coord] = tentativeRisk
-				if _, ok := openContents[adjNode.Coord]; !ok {
-					open = append(open, adjNode)
-					openContents[adjNode.Coord] = true
+				adjNode.PathRisk = tentativeRisk
 
-					// Overkill to sort with one entry appended but hey
-					sort.Slice(open, func(a, b int) bool {
-						return gScore[open[a].Coord] < gScore[open[b].Coord]
-					})
-				}
+				heap.Push(&lrq, adjNode)
 			}
 		}
 	}
@@ -124,16 +133,24 @@ func parseInput(input string, sizeMultiplier int) Grid {
 
 	caveMap := make(Grid, len(lines)*sizeMultiplier)
 
-	for i, line := range lines {
+	for i := 0; i < len(lines)*sizeMultiplier; i++ {
+		line := lines[i%len(lines)]
 		split := strings.Split(line, "")
 
 		row := []*Node{}
-		for j, str := range split {
-			n, _ := strconv.Atoi(str)
+		yAddAmount := int(math.Floor(float64(i) / float64(len(split))))
+		for j := 0; j < len(split)*sizeMultiplier; j++ {
+			xAddAmount := int(math.Floor(float64(j) / float64(len(split))))
 
+			str := split[j%len(split)]
+			n, _ := strconv.Atoi(str)
+			v := n + xAddAmount + yAddAmount
+			if v > 9 {
+				v %= 9
+			}
 			row = append(row, &Node{
 				Coord: Coord{X: j, Y: i},
-				Risk:  n,
+				Risk:  v,
 			})
 		}
 		caveMap[i] = row
@@ -150,14 +167,10 @@ func parseInput(input string, sizeMultiplier int) Grid {
 			sort.Slice(node.Adj, func(i, j int) bool {
 				return node.Adj[i].Risk < node.Adj[j].Risk
 			})
-
-			if i == len(caveMap)-1 && j == len(row)-1 {
-				node.Terminal = true
-			} else {
-				node.Terminal = false
-			}
 		}
 	}
+
+	caveMap[len(caveMap)-1][len(caveMap[0])-1].Terminal = true
 
 	return caveMap
 }

@@ -91,39 +91,48 @@ func TestFifteenOne(t *testing.T) {
 	}
 }
 
-// func TestExamplesFifteenTwo(t *testing.T) {
-// 	tests := []struct {
-// 		test     string
-// 		expected int
-// 	}{
-// 		{"", 0},
-// 	}
+func TestExamplesFifteenTwo(t *testing.T) {
+	tests := []struct {
+		test     string
+		expected int
+	}{
+		{`1163751742
+1381373672
+2136511328
+3694931569
+7463417111
+1319128137
+1359912421
+3125421639
+1293138521
+2311944581`, 315},
+	}
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if test.expected != result {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	for _, test := range tests {
+		result := run(test.test, 5)
+		if test.expected != result {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}
 
-// func TestFifteenTwo(t *testing.T) {
-// 	file, err := os.ReadFile("./input")
-// 	if err != nil {
-// 		log.Fatalf("could not read file")
-// 	}
+func TestFifteenTwo(t *testing.T) {
+	file, err := os.ReadFile("./input")
+	if err != nil {
+		log.Fatalf("could not read file")
+	}
 
-// 	tests := []struct {
-// 		test     string
-// 		expected int
-// 	}{
-// 		{string(file), 0},
-// 	}
+	tests := []struct {
+		test     string
+		expected int
+	}{
+		{string(file), 3002},
+	}
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if result[0] != test.expected {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	for _, test := range tests {
+		result := run(test.test, 5)
+		if result != test.expected {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}
