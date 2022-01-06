@@ -14,7 +14,6 @@ type Pixel struct {
 
 type Image struct {
 	Lookup map[Pixel]bool
-	List   *[]Pixel
 	LeastX int
 	MaxX   int
 	LeastY int
@@ -26,7 +25,7 @@ func (i Image) Edges() (int, int, int, int) {
 }
 
 func (i Image) countLight() int {
-	return len(*i.List)
+	return len(i.Lookup)
 }
 
 func (i Image) String() string {
@@ -57,7 +56,7 @@ func (i Image) String() string {
 	} else {
 		adjY = int(math.Abs(float64(lY)))
 	}
-	for _, p := range *i.List {
+	for p, _ := range i.Lookup {
 		grid[p.Y+adjY][p.X+adjX] = "#"
 	}
 
@@ -75,7 +74,6 @@ func (i Image) enhance(algo [512]bool) Image {
 
 	// Make new List and new Lookup, starting out with
 	// allocation sized at minimum of their predecessors
-	newList := make([]Pixel, 0, len(*i.List))
 	newLookup := make(map[Pixel]bool, len(i.Lookup))
 
 	// Set initial values for new min/max x/y
@@ -95,7 +93,6 @@ func (i Image) enhance(algo [512]bool) Image {
 			// If algo at this index is true, add
 			// pixel the new list and lookup
 			if algo[v] {
-				newList = append(newList, newPixel)
 				newLookup[newPixel] = true
 			}
 
@@ -119,7 +116,6 @@ func (i Image) enhance(algo [512]bool) Image {
 	}
 
 	return Image{
-		List:   &newList,
 		Lookup: newLookup,
 		LeastX: nlX,
 		MaxX:   nmX,
@@ -170,10 +166,8 @@ func parseInput(input string) ([512]bool, Image) {
 	imageRaw := split[1]
 	imageLines := strings.Split(imageRaw, "\n")
 	lookup := make(map[Pixel]bool, len(imageLines))
-	list := make([]Pixel, 0, len(imageLines))
 	image := Image{
 		Lookup: lookup,
-		List:   &list,
 		LeastX: math.MaxInt,
 		MaxX:   0,
 		LeastY: math.MaxInt,
@@ -184,7 +178,6 @@ func parseInput(input string) ([512]bool, Image) {
 		for j, chr := range line {
 			if chr == '#' {
 				nP := Pixel{j, i}
-				*image.List = append(*image.List, nP)
 				image.Lookup[nP] = true
 
 				if j < image.LeastX {

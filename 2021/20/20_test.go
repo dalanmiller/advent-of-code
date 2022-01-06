@@ -24,7 +24,6 @@ func TestAdjacent(t *testing.T) {
 	}{
 		{
 			Image{
-				List:   &[]Pixel{tl, br},
 				Lookup: map[Pixel]bool{tl: true, br: true},
 			},
 			Pixel{1, 1},
@@ -32,7 +31,6 @@ func TestAdjacent(t *testing.T) {
 		},
 		{
 			Image{
-				List:   &[]Pixel{tr, bl},
 				Lookup: map[Pixel]bool{tr: true, bl: true},
 			},
 			Pixel{1, 1},
@@ -40,7 +38,6 @@ func TestAdjacent(t *testing.T) {
 		},
 		{
 			Image{
-				List:   &[]Pixel{ml, mr},
 				Lookup: map[Pixel]bool{ml: true, mr: true},
 			},
 			Pixel{1, 1},
@@ -48,7 +45,6 @@ func TestAdjacent(t *testing.T) {
 		},
 		{
 			Image{
-				List:   &[]Pixel{tm, bm},
 				Lookup: map[Pixel]bool{tm: true, bm: true},
 			},
 			Pixel{1, 1},
@@ -77,7 +73,6 @@ func TestString(t *testing.T) {
 	}{
 		{
 			Image{
-				List:   &[]Pixel{tl, br},
 				Lookup: map[Pixel]bool{tl: true, br: true},
 				LeastX: 0,
 				MaxX:   2,
