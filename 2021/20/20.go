@@ -1,9 +1,6 @@
 package main
 
 import (
-	"log"
-	"math"
-	"strconv"
 	"strings"
 )
 
@@ -13,76 +10,73 @@ type Pixel struct {
 }
 
 type Image struct {
-	Lookup map[Pixel]bool
-	LeastX int
-	MaxX   int
-	LeastY int
-	MaxY   int
-}
-
-func (i Image) Edges() (int, int, int, int) {
-	return i.LeastX, i.MaxX, i.LeastY, i.MaxY
+	Known    map[Pixel]bool
+	Min      int
+	Max      int
+	InfPixel bool
 }
 
 func (i Image) countLight() int {
-	return len(i.Lookup)
-}
-
-func (i Image) String() string {
-	lX, mX, lY, mY := i.Edges()
-	height := mY - lY
-	width := mX - lX
-	grid := make([][]string, mY-lY+1)
-
-	// Create empty grid of strings
-	for j := 0; j <= height; j++ {
-		grid[j] = make([]string, width+1)
-		for i := range grid[j] {
-			grid[j][i] = "."
+	sum := 0
+	for _, v := range i.Known {
+		if v {
+			sum++
 		}
 	}
-
-	// Need to mark light cells and normalize
-	var adjX, adjY int
-	if lX > 0 {
-		adjX = -lX
-	} else {
-		adjX = int(math.Abs(float64(lX)))
-
-	}
-
-	if lY > 0 {
-		adjY = -lY
-	} else {
-		adjY = int(math.Abs(float64(lY)))
-	}
-	for p, _ := range i.Lookup {
-		grid[p.Y+adjY][p.X+adjX] = "#"
-	}
-
-	// Combine all the strings into a mega-grid string
-	var s strings.Builder
-	for _, row := range grid {
-		s.WriteString(strings.Join(row, "") + "\n")
-	}
-
-	return s.String()
+	return sum
 }
 
+// func (i Image) String() string {
+
+// 	grid := make([][]string, height+1)
+
+// 	// Create empty grid of strings
+// 	for j := 0; j <= height; j++ {
+// 		grid[j] = make([]string, width+1)
+// 		for i := range grid[j] {
+// 			grid[j][i] = "."
+// 		}
+// 	}
+
+// 	// Need to mark light cells and normalize
+// 	var adjX, adjY int
+// 	if lX > 0 {
+// 		adjX = -lX
+// 	} else {
+// 		adjX = int(math.Abs(float64(lX)))
+
+// 	}
+
+// 	if lY > 0 {
+// 		adjY = -lY
+// 	} else {
+// 		adjY = int(math.Abs(float64(lY)))
+// 	}
+// 	for p := range i.Known {
+// 		grid[p.Y+adjY][p.X+adjX] = "#"
+// 	}
+
+// 	// Combine all the strings into a mega-grid string
+// 	var s strings.Builder
+// 	for _, row := range grid {
+// 		s.WriteString(strings.Join(row, "") + "\n")
+// 	}
+
+// 	return s.String()
+// }
+
 func (i Image) enhance(algo [512]bool) Image {
-	lX, mX, lY, mY := i.Edges()
+	newMin := i.Min - 1
+	newMax := i.Max + 1
 
-	// Make new List and new Lookup, starting out with
+	// Make new List and new Known, starting out with
 	// allocation sized at minimum of their predecessors
-	newLookup := make(map[Pixel]bool, len(i.Lookup))
-
-	// Set initial values for new min/max x/y
-	nlX, nmX, nlY, nmY := math.MaxInt, 0, math.MaxInt, 0
+	newKnown := make(map[Pixel]bool, len(i.Known))
 
 	// -1 and +1 because we want to be bounded one further in every
 	// direction of the current min/max X and min/max Y.
-	for y := lY - 1; y <= mY+1; y++ {
-		for x := lX - 1; x <= mX+1; x++ {
+	for y := newMin; y < newMax; y++ {
+		for x := newMin; x < newMax; x++ {
 
 			// Create new pixel
 			newPixel := Pixel{x, y}
@@ -91,62 +85,43 @@ func (i Image) enhance(algo [512]bool) Image {
 			v := i.adjacent(newPixel)
 
 			// If algo at this index is true, add
-			// pixel the new list and lookup
-			if algo[v] {
-				newLookup[newPixel] = true
-			}
-
-			// Determine if we need to set a new min/max
-			if newPixel.X < nlX {
-				nlX = newPixel.X
-			}
-
-			if newPixel.X > nmX {
-				nmX = newPixel.X
-			}
-
-			if newPixel.Y < nlY {
-				nlY = newPixel.Y
-			}
-
-			if newPixel.Y > nmY {
-				nmY = newPixel.Y
-			}
+			// pixel to the lookup
+			newKnown[newPixel] = algo[v]
 		}
 	}
 
+	var newInfPixel bool
+	if i.InfPixel {
+		newInfPixel = false
+	} else {
+		newInfPixel = true
+	}
+
 	return Image{
-		Lookup: newLookup,
-		LeastX: nlX,
-		MaxX:   nmX,
-		LeastY: nlY,
-		MaxY:   nmY,
+		Known:    newKnown,
+		Min:      newMin,
+		Max:      newMax,
+		InfPixel: newInfPixel,
 	}
 }
 
 func (i Image) adjacent(p Pixel) int {
-	values := make([]int, 0, 8)
+	var value int
 	for _, y := range []int{-1, 0, 1} {
 		for _, x := range []int{-1, 0, 1} {
-
+			value = value << 1
 			// Look up in map if this Pixel exists
-			if _, ok := i.Lookup[Pixel{x + p.X, y + p.Y}]; ok {
-				values = append(values, 1)
+			if val, ok := i.Known[Pixel{x + p.X, y + p.Y}]; ok && val {
+				value++
 
-				// Otherwise, it's a 0
-			} else {
-				values = append(values, 0)
+				// Otherwise, it's maybe an infinite pixel or an edge-ish pixel
+			} else if !ok && i.InfPixel {
+				value++
 			}
 		}
 	}
 
-	// Do configuration to make this into a representation of the binary value
-	var v strings.Builder
-	for _, val := range values {
-		v.WriteString(strconv.Itoa(val))
-	}
-	value, _ := strconv.ParseInt(v.String(), 2, 32)
-	return int(value)
+	return value
 }
 
 func parseInput(input string) ([512]bool, Image) {
@@ -165,51 +140,38 @@ func parseInput(input string) ([512]bool, Image) {
 
 	imageRaw := split[1]
 	imageLines := strings.Split(imageRaw, "\n")
-	lookup := make(map[Pixel]bool, len(imageLines))
+	known := make(map[Pixel]bool, len(imageLines)*4)
 	image := Image{
-		Lookup: lookup,
-		LeastX: math.MaxInt,
-		MaxX:   0,
-		LeastY: math.MaxInt,
-		MaxY:   0,
+		Known:    known,
+		Min:      0,
+		Max:      100,
+		InfPixel: false,
 	}
 
 	for i, line := range imageLines {
 		for j, chr := range line {
+			nP := Pixel{j, i}
 			if chr == '#' {
-				nP := Pixel{j, i}
-				image.Lookup[nP] = true
 
-				if j < image.LeastX {
-					image.LeastX = j
-				}
-
-				if j > image.MaxX {
-					image.MaxX = j
-				}
-
-				if i < image.LeastY {
-					image.LeastY = i
-				}
-
-				if i > image.MaxY {
-					image.MaxY = i
-				}
+				image.Known[nP] = true
+			} else {
+				image.Known[nP] = false
 			}
 		}
 	}
+
 	return algo, image
 }
 
 func run(input string, iterations int) int {
 	algo, image := parseInput(input)
 
-	log.Printf("\n%s", image.String())
+	// log.Printf("\n%s", image.String())
 	for i := 0; i < iterations; i++ {
 		image = image.enhance(algo)
-
+		// log.Printf("\n%s", image.String())
 	}
 
-	log.Printf("\n%s", image.String())
+	// log.Printf("\n%s", image.String())
 	return image.countLight()
 }

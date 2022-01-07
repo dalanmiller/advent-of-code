@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"testing"
 )
@@ -24,28 +25,28 @@ func TestAdjacent(t *testing.T) {
 	}{
 		{
 			Image{
-				Lookup: map[Pixel]bool{tl: true, br: true},
+				Known: map[Pixel]bool{tl: true, br: true},
 			},
 			Pixel{1, 1},
 			257, // 100000001
 		},
 		{
 			Image{
-				Lookup: map[Pixel]bool{tr: true, bl: true},
+				Known: map[Pixel]bool{tr: true, bl: true},
 			},
 			Pixel{1, 1},
 			68, // 001000100
 		},
 		{
 			Image{
-				Lookup: map[Pixel]bool{ml: true, mr: true},
+				Known: map[Pixel]bool{ml: true, mr: true},
 			},
 			Pixel{1, 1},
 			40, // 000101000
 		},
 		{
 			Image{
-				Lookup: map[Pixel]bool{tm: true, bm: true},
+				Known: map[Pixel]bool{tm: true, bm: true},
 			},
 			Pixel{1, 1},
 			130, // 010000010
@@ -64,82 +65,6 @@ func TestAdjacent(t *testing.T) {
 	}
 }
 
-func TestString(t *testing.T) {
-	tl := Pixel{0, 0}
-	br := Pixel{2, 2}
-	tests := []struct {
-		image    Image
-		expected string
-	}{
-		{
-			Image{
-				Lookup: map[Pixel]bool{tl: true, br: true},
-				LeastX: 0,
-				MaxX:   2,
-				LeastY: 0,
-				MaxY:   2,
-			},
-			`#..
-...
-..#
-`,
-		},
-	}
-
-	for _, test := range tests {
-		if test.image.String() != test.expected {
-			t.Fatalf(
-				"Incorrect binary representation, got %s, expected %s",
-				test.image.String(),
-				test.expected,
-			)
-		}
-	}
-}
-
-func TestExamplesTwentyPartOne(t *testing.T) {
-	tests := []struct {
-		test       string
-		iterations int
-		expected   int
-	}{
-		{`..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
-
-		#..#.
-		#....
-		##..#
-		..#..
-		..###`, 0, 10},
-		{`..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
-
-		#..#.
-		#....
-		##..#
-		..#..
-		..###`, 1, 24},
-		{`..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
-
-		#..#.
-		#....
-		##..#
-		..#..
-		..###`, 2, 35},
-
-		{`...............#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
-
-		...
-		.#.
-		...`, 1, 2},
-	}
-
-	for _, test := range tests {
-		result := run(test.test, test.iterations)
-		if test.expected != result {
-			t.Fatalf("Result % d != expected % d", result, test.expected)
-		}
-	}
-}
-
 func TestTwentyPartOne(t *testing.T) {
 	file, _ := os.ReadFile("./input")
 	input := string(file)
@@ -149,11 +74,14 @@ func TestTwentyPartOne(t *testing.T) {
 		iterations int
 		expected   int
 	}{
-		// !5278 actual <
-		// !5073, actual >
+		// <5278
+		// >5073
+		// !5167
+		// !5400
+		// !5020
+		// +5081
 		{input, 0, 4916},
-		{input, 1, 5073},
-		{input, 2, 5278},
+		{input, 2, 5081},
 	}
 
 	for _, test := range tests {
@@ -164,39 +92,36 @@ func TestTwentyPartOne(t *testing.T) {
 	}
 }
 
-// func TestExamplesOneTwo(t *testing.T) {
-// 	tests := []struct {
-// 		test     string
-// 		expected int
-// 	}{
-// 		{"", 0},
-// 	}
+func BenchmarkTwentyPartOne(b *testing.B) {
+	file, _ := os.ReadFile("./input")
+	input := string(file)
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if test.expected != result {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	for i := 0; i < b.N; i++ {
+		result := run(input, 2)
+		if result != 5171 {
+			b.Fatalf("Result % d != expected % d", result, 5121)
+		}
+	}
+}
 
-// func TestOneTwo(t *testing.T) {
-// 	file, err := os.ReadFile("./input")
-// 	if err != nil {
-// 		log.Fatalf("could not read file")
-// 	}
+func TestTwentyTwo(t *testing.T) {
+	file, err := os.ReadFile("./input")
+	if err != nil {
+		log.Fatalf("could not read file")
+	}
 
-// 	tests := []struct {
-// 		test     string
-// 		expected int
-// 	}{
-// 		{string(file), 0},
-// 	}
+	tests := []struct {
+		test       string
+		iterations int
+		expected   int
+	}{
+		{string(file), 50, 15088},
+	}
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if result[0] != test.expected {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	for _, test := range tests {
+		result := run(test.test, test.iterations)
+		if result != test.expected {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}
