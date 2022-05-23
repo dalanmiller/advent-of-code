@@ -24,11 +24,6 @@ type Position struct {
 	Column, Row int8
 }
 
-type State struct {
-	RunningCost int
-	Amphipods   []Amphipod
-}
-
 type Amphipod struct {
 	InHallway bool
 	Position  Position
@@ -50,7 +45,7 @@ func (A Amphipod) movementCost() int {
 	return 0
 }
 
-func (A Amphipod) destinationColumn() int {
+func (A Amphipod) destinationColumn() int8 {
 	switch A.Type {
 	case AMBER:
 		return 3
@@ -65,6 +60,13 @@ func (A Amphipod) destinationColumn() int {
 	return 0
 }
 
+var amphipodTypeMap = map[string]Type{
+	"A": AMBER,
+	"B": BRONZE,
+	"C": COPPER,
+	"D": DESERT,
+}
+
 type World struct {
 	Amphipods    []Amphipod
 	BurrowHeight int8
@@ -72,8 +74,7 @@ type World struct {
 	CurrentCost  int
 }
 
-func (w World) burrowTypeFull(aType Type) bool {
-
+func (w World) burrowTypeCompleteAndOccupants(aType Type) (bool, []bool) {
 	var col int8
 	switch aType {
 	case AMBER:
@@ -88,17 +89,50 @@ func (w World) burrowTypeFull(aType Type) bool {
 
 	// Okay, we need to check if all the spaces in the column are
 	//  filled with the right Amphipod type
+	occupancy := make([]bool, w.BurrowHeight)
+	// fmt.Printf(occupancy)
+	result := true
 	for i := int8(2); i < w.BurrowHeight+2; i++ {
 		for _, amphi := range w.Amphipods {
 
 			// Just need to check if it's in the column and then whether or
 			//  not it's the right type or not.
-			if amphi.Position.Column == col && amphi.Type != aType {
-				return false
+			if amphi.Position.Column == col {
+				occupancy[amphi.Position.Column-2] = true
+				if amphi.Type != aType {
+					result = false
+				}
 			}
 		}
 	}
-	return true
+	return result, occupancy
+}
+
+func (w World) possibleMoves(amphipod Amphipod) []Position {
+	moves := make([]Position, 0, 12)
+
+	// First we iterate over hallway
+	for _, x := range []int8{1, 2, 4, 6, 8, 10, 11} {
+		p := Position{x, 2}
+		if w.canStopHere(amphipod, p) {
+			moves = append(moves, p)
+		}
+	}
+
+	// ~Then we iterate over each of the spaces in the burrows~
+	// Incorrect! We just need to go through the column for this
+	// . particular amphipod.
+	destColumn := amphipod.destinationColumn()
+	deepestBurrowPoint := Position{0, 0}
+	for y := int8(2); y < w.BurrowHeight+2; y++ {
+		p := Position{destColumn, y}
+		if w.canStopHere(amphipod, p) {
+			deepestBurrowPoint = p
+		}
+	}
+	moves = append(moves, deepestBurrowPoint)
+
+	return moves
 }
 
 func (w World) canStopHere(amphipod Amphipod, proposedDestination Position) bool {
@@ -114,6 +148,10 @@ func (w World) canStopHere(amphipod Amphipod, proposedDestination Position) bool
 			return amphipod.Position.Row != 1
 		}
 	} else {
+
+		// Need to check if burrow is empty
+		// . if empty we can only go to the bottom of the burrow
+		//		if
 		// We're trying to get to a burrow... hopefully
 		return true
 	}
@@ -163,67 +201,33 @@ func (w World) print() {
 
 func parseInput(input string) []Amphipod {
 	lines := strings.Split(input, "\n")
-
 	amphipods := make([]Amphipod, 0, 8)
-	for x := int8(3); x <= 9; x += 2 {
 
-		switch Type(lines[2][x]) {
-		case AMBER:
+	// Iterate over hallway (for testing purposes)
+	for _, x := range []int8{1, 2, 4, 6, 8, 10, 11} {
+		char := string(lines[1][x])
+		if char != "." && char != "#" {
 			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 2},
-				Type:     AMBER,
-			})
-		case BRONZE:
-			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 2},
-				Type:     BRONZE,
-			})
-		case COPPER:
-			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 2},
-				Type:     COPPER,
-			})
-		case DESERT:
-			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 2},
-				Type:     DESERT,
-			})
-		}
-
-		switch Type(lines[3][x]) {
-		case AMBER:
-			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 3},
-				Type:     AMBER,
-			})
-		case BRONZE:
-			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 3},
-				Type:     BRONZE,
-			})
-		case COPPER:
-			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 3},
-				Type:     COPPER,
-			})
-		case DESERT:
-			amphipods = append(amphipods, Amphipod{
-				Position: Position{Column: x, Row: 3},
-				Type:     DESERT,
+				Position: Position{x, 1},
+				Type:     amphipodTypeMap[char],
 			})
 		}
 	}
 
+	// Iterate over burrows
+	for x := int8(3); x <= 9; x += 2 {
+		for y := int8(2); y < int8(len(lines)-1); y++ {
+			char := string(lines[y][x])
+			if char != "." && char != "#" {
+				amphipods = append(amphipods, Amphipod{
+					Position: Position{x, y},
+					Type:     amphipodTypeMap[char],
+				})
+			}
+		}
+	}
+
 	return amphipods
-}
-
-
-func generate
-
-func optimalPath(w World) int {
-	
-	
-
 }
 
 func run(input string) int {
@@ -234,7 +238,6 @@ func run(input string) int {
 		CurrentCost:  0,
 	}
 
-	optimalPath(world)
-
+	initWorld.print()
 	return 0
 }
