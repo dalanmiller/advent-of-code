@@ -193,7 +193,7 @@ func TestTwentyTwoTwo(t *testing.T) {
 		test     string
 		expected uint64
 	}{
-		{string(file), 0},
+		{string(file), 1201259791805392},
 	}
 
 	for _, test := range tests {
