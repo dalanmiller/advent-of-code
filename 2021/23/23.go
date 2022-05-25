@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	// "log"
+	"math"
 	"strings"
 )
 
@@ -30,34 +32,32 @@ type Amphipod struct {
 	Type      Type
 }
 
-func (A Amphipod) movementCost() int {
-	switch A.Type {
-	case AMBER:
-		return 1
-	case BRONZE:
-		return 10
-	case COPPER:
-		return 100
-	case DESERT:
-		return 1000
+func (A Amphipod) costToMove(p2 Position) int {
+	p1 := A.Position
+	cost := amphipodCostMap[A.Type]
+	xDelta := int(math.Abs(float64(p1.Column - p2.Column)))
+
+	if p1.Row > 1 && p2.Row == 1 {
+		yDelta := int(p1.Row - 1)
+		return (yDelta + xDelta) * cost
+	} else if p1.Row == 1 && p2.Row > 1 {
+		yDelta := int(p2.Row - 1)
+		return (yDelta + xDelta) * cost
+	} else {
+
+		// Lastly, we are moving from a burrow to a burrow
+		y1Delta := int(p1.Row - 1)
+		y2Delta := int(p2.Row - 1)
+		return (y1Delta + y2Delta + xDelta) * cost
 	}
 
-	return 0
 }
 
-func (A Amphipod) destinationColumn() int8 {
-	switch A.Type {
-	case AMBER:
-		return 3
-	case BRONZE:
-		return 5
-	case COPPER:
-		return 7
-	case DESERT:
-		return 9
-	}
-
-	return 0
+var amphipodDestinationColumnMap = map[Type]int8{
+	AMBER:  3,
+	BRONZE: 5,
+	COPPER: 7,
+	DESERT: 9,
 }
 
 var amphipodTypeMap = map[string]Type{
@@ -65,6 +65,13 @@ var amphipodTypeMap = map[string]Type{
 	"B": BRONZE,
 	"C": COPPER,
 	"D": DESERT,
+}
+
+var amphipodCostMap = map[Type]int{
+	AMBER:  1,
+	BRONZE: 10,
+	COPPER: 100,
+	DESERT: 1000,
 }
 
 type World struct {
@@ -112,8 +119,9 @@ func (w World) possibleMoves(amphipod Amphipod) []Position {
 	moves := make([]Position, 0, 12)
 
 	// First we iterate over hallway
-	for _, x := range []int8{1, 2, 4, 6, 8, 10, 11} {
-		p := Position{x, 2}
+	for _, col := range []int8{1, 2, 4, 6, 8, 10, 11} {
+		p := Position{col, 1}
+		// log.Printf("Checking %v", p)
 		if w.canStopHere(amphipod, p) {
 			moves = append(moves, p)
 		}
@@ -122,39 +130,78 @@ func (w World) possibleMoves(amphipod Amphipod) []Position {
 	// ~Then we iterate over each of the spaces in the burrows~
 	// Incorrect! We just need to go through the column for this
 	// . particular amphipod.
-	destColumn := amphipod.destinationColumn()
+	destColumn := amphipodDestinationColumnMap[amphipod.Type]
 	deepestBurrowPoint := Position{0, 0}
-	for y := int8(2); y < w.BurrowHeight+2; y++ {
-		p := Position{destColumn, y}
+	for row := int8(2); row < w.BurrowHeight+2; row++ {
+		p := Position{destColumn, row}
+		// log.Printf("Checking %v", p)
 		if w.canStopHere(amphipod, p) {
 			deepestBurrowPoint = p
 		}
 	}
-	moves = append(moves, deepestBurrowPoint)
+
+	// Prepend as we likely want to explore the path where
+	// the amphipod moves directly into the burrow it belongs
+	// to first.
+	moves = append([]Position{deepestBurrowPoint}, moves...)
 
 	return moves
 }
 
-func (w World) canStopHere(amphipod Amphipod, proposedDestination Position) bool {
+func (w World) canStopHere(a Amphipod, proposedDestination Position) bool {
 	Row := proposedDestination.Row
 	Col := proposedDestination.Column
+
+	// Firstly, can't stop on self
+	if a.Position.Row == Row && a.Position.Column == Col {
+		return false
+	}
+
+	// Can't stop there if another a is there!
+	for _, b := range w.Amphipods {
+		// log.Printf("Checking %v against %v", proposedDestination, b.Position)
+		if Row == b.Position.Row && Col == b.Position.Column {
+			return false
+		}
+	}
 
 	if Row == 1 {
 		// Can't stop above a burrow
 		if Col == 3 || Col == 5 || Col == 7 || Col == 9 {
 			return false
-		} else {
-			// Amphipod can't move from hallway to hallway again
-			return amphipod.Position.Row != 1
 		}
+
+		if a.Position.Row == 1 {
+			// a can't move from hallway to hallway again
+			return false
+		}
+
+		// Can't move to a location in hallway if blocked
+		// by another amphipod
+		for _, b := range w.Amphipods {
+			// Somewhat uncertain if this excludes all valid cases, but I think it's good
+
+			// Check if proposed destination is rightwards and
+			// whether there is amphipod in the way
+			if a.Position.Column < b.Position.Column && b.Position.Column < Col {
+				return false
+			}
+
+			// Now check if the proposed destination is leftwards and
+			// if there is amphipod in way.
+			if a.Position.Column > b.Position.Column && b.Position.Column > Col {
+				return false
+			}
+		}
+
 	} else {
 
 		// Need to check if burrow is empty
 		// . if empty we can only go to the bottom of the burrow
-		//		if
-		// We're trying to get to a burrow... hopefully
 		return true
 	}
+
+	return true
 }
 
 func (w World) print() {

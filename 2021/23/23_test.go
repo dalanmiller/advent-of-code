@@ -14,7 +14,6 @@ var test1 = `#############
 
 func TestBurrowTypeCompleteAndOccupantsTest1(t *testing.T) {
 	amphipods := parseInput(test1)
-	log.Print(amphipods)
 
 	w := World{
 		Amphipods:    amphipods,
@@ -27,9 +26,9 @@ func TestBurrowTypeCompleteAndOccupantsTest1(t *testing.T) {
 		log.Fatalf("Test1 Burrow should not be complete")
 	}
 
-	for i, occupied := range occupancy {
-		log.Printf("%d: %t", i, occupied)
-	}
+	// for i, occupied := range occupancy {
+	// 	log.Printf("%d: %t", i, occupied)
+	// }
 
 	if occupancy[0] == true {
 		log.Fatalf("First spot should not be occupied")
@@ -44,7 +43,6 @@ func TestPossibleMovesTest1(t *testing.T) {
 	amphipods := parseInput(test1)
 
 	if len(amphipods) != 1 {
-		log.Print(amphipods)
 		log.Fatalf("Got too many amphipods, got %d, wanted 1", len(amphipods))
 	}
 
@@ -55,9 +53,9 @@ func TestPossibleMovesTest1(t *testing.T) {
 
 	moves := w.possibleMoves(amphipods[0])
 
-	for _, position := range moves {
-		log.Printf("P - X:%d, Y:%d ", position.Column, position.Row)
-	}
+	// for _, position := range moves {
+	// 	log.Printf("P - X:%d, Y:%d ", position.Column, position.Row)
+	// }
 
 	if len(moves) != 8 {
 		log.Fatalf("Incorrect number of moves, calculated %d, expected 8", len(moves))
@@ -85,9 +83,9 @@ func TestBurrowTypeCompleteAndOccupantsTest2(t *testing.T) {
 		log.Fatalf("Burrow should not be complete")
 	}
 
-	for i, occupied := range occupancy {
-		log.Printf("%d: %t", i, occupied)
-	}
+	// for i, occupied := range occupancy {
+	// 	log.Printf("%d: %t", i, occupied)
+	// }
 
 	if occupancy[0] == true {
 		log.Fatalf("First spot should not be occupied")
@@ -110,14 +108,34 @@ func TestPossibleMovesTest2(t *testing.T) {
 		BurrowHeight: 2,
 	}
 
-	moves := w.possibleMoves(amphipods[0])
+	moves := w.possibleMoves(amphipods[3])
 
-	for _, position := range moves {
-		log.Printf("P - X:%d, Y:%d ", position.Column, position.Row)
-	}
+	// for _, position := range moves {
+	// 	log.Printf("Test2 > P - Col:%d, Row:%d ", position.Column, position.Row)
+	// }
 
 	if len(moves) != 4 {
 		log.Fatalf("Incorrect number of moves, calculated %d, expected 4", len(moves))
+	}
+
+}
+
+func TestCostOfMoveTest2(t *testing.T) {
+	amphipods := parseInput(test2)
+
+	d1 := amphipods[3]
+	destination := Position{9, 2}
+	cost := d1.costToMove(destination)
+
+	if cost != 9000 {
+		log.Fatalf("Expected cost of 9000, got %d", cost)
+	}
+
+	a3 := amphipods[2]
+	destination = Position{3, 2}
+	cost = a3.costToMove(destination)
+	if cost != 8 {
+		log.Fatalf("Expected cost of 8, got %d", cost)
 	}
 
 }
