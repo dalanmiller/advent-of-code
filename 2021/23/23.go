@@ -2,10 +2,13 @@ package main
 
 import (
 	"container/heap"
+	"fmt"
 	"log"
 	"math"
 	"sort"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 //0 #############
@@ -28,29 +31,45 @@ type Position struct {
 }
 
 type Amphipod struct {
-	Position Position
 	Type     Type
+	Position Position
 }
 
-func (A Amphipod) costToMove(p2 Position) int {
+type Journey struct {
+	FromTo [2]Position
+	Type   Type
+}
+
+var costToMoveMemoization = make(map[Journey]uint16, 48)
+
+func (A Amphipod) costToMove(p2 Position) uint16 {
 	p1 := A.Position
-	cost := amphipodCostMap[A.Type]
-	xDelta := int(math.Abs(float64(p1.Column - p2.Column)))
+	j := Journey{[2]Position{p1, p2}, A.Type}
+	if cost, ok := costToMoveMemoization[j]; ok {
+		return cost
+	}
+
+	energyCost := amphipodCostMap[A.Type]
+	xDelta := uint16(math.Abs(float64(p1.Column - p2.Column)))
+	cost := uint16(0)
 
 	if p1.Row > 1 && p2.Row == 1 {
-		yDelta := int(p1.Row - 1)
-		return (yDelta + xDelta) * cost
+		yDelta := uint16(p1.Row - 1)
+
+		cost = (yDelta + xDelta) * energyCost
 	} else if p1.Row == 1 && p2.Row > 1 {
-		yDelta := int(p2.Row - 1)
-		return (yDelta + xDelta) * cost
+		yDelta := uint16(p2.Row - 1)
+		cost = (yDelta + xDelta) * energyCost
 	} else {
 
 		// Lastly, we are moving from a burrow to a burrow
-		y1Delta := int(p1.Row - 1)
-		y2Delta := int(p2.Row - 1)
-		return (y1Delta + y2Delta + xDelta) * cost
+		y1Delta := uint16(p1.Row - 1)
+		y2Delta := uint16(p2.Row - 1)
+		cost = (y1Delta + y2Delta + xDelta) * energyCost
 	}
 
+	costToMoveMemoization[j] = cost
+	return cost
 }
 
 var amphipodDestinationColumnMap = map[Type]int8{
@@ -67,42 +86,40 @@ var amphipodTypeMap = map[string]Type{
 	"D": DESERT,
 }
 
-var amphipodCostMap = map[Type]int{
+var amphipodCostMap = map[Type]uint16{
 	AMBER:  1,
 	BRONZE: 10,
 	COPPER: 100,
 	DESERT: 1000,
 }
 
+var amphipodColorMap = map[Type]func(format string, a ...interface{}) string{
+	AMBER:  color.YellowString,
+	BRONZE: color.RedString,
+	COPPER: color.BlueString,
+	DESERT: color.GreenString,
+}
+
 type World struct {
-	Amphipods    [8]Amphipod
-	BurrowHeight int8
-	// LeafWorlds     []*World
-	CurrentCost    int
-	AdditionalCost int
+	LeafWorlds     [48]*World
+	Amphipods      [16]Amphipod
+	AdditionalCost uint16
+	CurrentCost    uint16
+	AmphipodsLeft  int8
+	BurrowHeight   int8
 	Complete       bool
 }
 
-type WorldList []*World
-
-func (w WorldList) Len() int {
-	return len(w)
+func (w World) h() uint16 {
+	return w.CurrentCost + w.costToCompletion()
 }
 
-func (w WorldList) Swap(i, j int) {
-	w[i], w[j] = w[j], w[i]
-}
-
-func (w WorldList) Less(i, j int) bool {
-	return w[i].CurrentCost < w[j].CurrentCost
-}
-
-func (w World) burrowTypeCompleteAndOccupants(aType Type) (bool, []bool) {
+func (w World) burrowTypeCompleteAndOccupants(aType Type) (bool, []Type) {
 	col := amphipodDestinationColumnMap[aType]
 
 	// Okay, we need to check if all the spaces in the column are
 	//  filled with the right Amphipod type
-	occupancy := make([]bool, w.BurrowHeight)
+	occupancy := make([]Type, w.BurrowHeight)
 	result := true
 	for i := int8(2); i < w.BurrowHeight+2; i++ {
 
@@ -123,7 +140,7 @@ func (w World) burrowTypeCompleteAndOccupants(aType Type) (bool, []bool) {
 			if p.Column == col && p.Row == i {
 
 				// Ensure we mark the occupancy
-				occupancy[p.Row-2] = true
+				occupancy[p.Row-2] = amphi.Type
 
 				// And we check if the type matches that
 				// of the target type for the burrow.
@@ -138,7 +155,7 @@ func (w World) burrowTypeCompleteAndOccupants(aType Type) (bool, []bool) {
 	// Case handling of if no amphipods are in the space then all the occupancy slots
 	// . are actually 'false'
 	for _, occu := range occupancy {
-		if !occu {
+		if occu == "" {
 			result = false
 		}
 	}
@@ -158,11 +175,16 @@ func (w World) possibleMoves(amphipod Amphipod) []Position {
 
 	// If the amphipod is right where it should be then we
 	// don't need to move it anywhere!
+	complete, occupancy := w.burrowTypeCompleteAndOccupants(amphipod.Type)
 	if amphipod.Position.Row > 1 && amphipod.Position.Column == amphipodDestinationColumnMap[amphipod.Type] {
-		complete, occupancy := w.burrowTypeCompleteAndOccupants(amphipod.Type)
 		allFalseButLast := false
 		for i, occu := range occupancy {
-			if i == len(occupancy)-1 && occu {
+			// If there is an amphipod here that doesn't match
+			if int8(i+2) > amphipod.Position.Row && occu != amphipod.Type {
+				break
+			}
+
+			if i == len(occupancy)-1 && occu != "" {
 				allFalseButLast = true
 				break
 			}
@@ -174,15 +196,15 @@ func (w World) possibleMoves(amphipod Amphipod) []Position {
 	}
 
 	moves := make([]Position, 0, 12)
-	destColumn := amphipodDestinationColumnMap[amphipod.Type]
-
-	complete, _ := w.burrowTypeCompleteAndOccupants(amphipod.Type)
+	dCol := amphipodDestinationColumnMap[amphipod.Type]
 
 	if !complete {
 		var deepestBurrowPoint Position
 		foundSpot := false
-		for row := int8(2); row < w.BurrowHeight+2; row++ {
-			p := Position{destColumn, row}
+		for i, p := range []Position{{dCol, 2}, {dCol, 3}, {dCol, 4}, {dCol, 5}, {dCol, 6}, {dCol, 7}, {dCol, 8}} {
+			if int8(i) >= w.BurrowHeight {
+				break
+			}
 			if w.canStopHere(amphipod, p) {
 				deepestBurrowPoint = p
 				foundSpot = true
@@ -195,11 +217,9 @@ func (w World) possibleMoves(amphipod Amphipod) []Position {
 	}
 
 	// If we got this far, then we didn't find a spot in the burrow
-	for _, col := range []int8{1, 2, 4, 6, 8, 10, 11} {
-		p := Position{col, 1}
-
-		if w.canStopHere(amphipod, p) {
-			moves = append(moves, p)
+	for _, pos := range []Position{{1, 1}, {2, 1}, {4, 1}, {6, 1}, {8, 1}, {10, 1}, {11, 1}} {
+		if w.canStopHere(amphipod, pos) {
+			moves = append(moves, pos)
 		}
 	}
 
@@ -280,11 +300,11 @@ func (w World) canStopHere(a Amphipod, proposedDestination Position) bool {
 			}
 		}
 
-		// Can't stop here if there are amphipods blocking the entrance
-		// . above this position
+		// Can't stop here if there are amphipods blocking the positions in the
+		// . burrow that are above this position
 		_, occupancy := w.burrowTypeCompleteAndOccupants(a.Type)
 		for y := Row; y > 1; y-- {
-			if occupancy[y-w.BurrowHeight] {
+			if occupancy[y-2] != "" {
 				return false
 			}
 		}
@@ -313,12 +333,34 @@ func (w World) burrowsComplete() bool {
 			return false
 		}
 	}
-
 	return true
 }
 
-func (w *World) Print() string {
+// This function does a simple estimation on getting amphipods
+// . to their final burrow place. It's not exact.
 
+var costToCompletionMemoization = make(map[[16]Amphipod]uint16, 100000)
+
+func (w World) costToCompletion() uint16 {
+	if v, ok := costToCompletionMemoization[w.Amphipods]; ok {
+		return v
+	}
+	cost := uint16(0)
+	for _, a := range w.Amphipods {
+		if a.Type == "" {
+			continue
+		}
+		destCol := amphipodDestinationColumnMap[a.Type]
+		if a.Position.Column != destCol {
+			cost += a.costToMove(Position{destCol, 2})
+		}
+	}
+	costToCompletionMemoization[w.Amphipods] = cost
+	return cost
+}
+
+func (w *World) Print() string {
+	//  0123456789012
 	//0 #############
 	//1 #...........#
 	//2 ###A#B#C#D###
@@ -326,11 +368,13 @@ func (w *World) Print() string {
 	//4   #########
 
 	var output strings.Builder
-	output.WriteString("#############\n")
+	output.WriteString("\n#############\n")
 	hallway := []string{"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "\n"}
 	for _, amphi := range w.Amphipods {
 		if amphi.Position.Row == 1 {
-			hallway[amphi.Position.Column] = string(amphi.Type)
+			typeChar := string(amphi.Type)
+			colorFunc := amphipodColorMap[amphi.Type]
+			hallway[amphi.Position.Column] = colorFunc(typeChar)
 		}
 	}
 	output.WriteString(strings.Join(hallway, ""))
@@ -348,7 +392,9 @@ func (w *World) Print() string {
 		//  the correct column
 		for _, amphi := range w.Amphipods {
 			if amphi.Position.Row != 1 && amphi.Position.Row == int8(2+i) {
-				burrowRow[amphi.Position.Column] = string(amphi.Type)
+				typeChar := string(amphi.Type)
+				colorFunc := amphipodColorMap[amphi.Type]
+				burrowRow[amphi.Position.Column] = colorFunc(typeChar)
 			}
 		}
 		output.WriteString(strings.Join(burrowRow, ""))
@@ -356,12 +402,13 @@ func (w *World) Print() string {
 
 	// Now the last row
 	output.WriteString("  #########  \n")
+	output.WriteString(fmt.Sprintf("CurrentCost: %d\n", w.CurrentCost))
+	output.WriteString(fmt.Sprintf("h(): %d\n", w.h()))
 	return output.String()
 }
 
-func parseInput(input string) [8]Amphipod {
+func parseInput(input string) (amphipods [16]Amphipod) {
 	lines := strings.Split(input, "\n")
-	var amphipods [8]Amphipod
 	i := 0
 
 	// Iterate over hallway (for testing purposes)
@@ -393,27 +440,19 @@ func parseInput(input string) [8]Amphipod {
 	return amphipods
 }
 
-// type WorldQueue struct {
-// 	Worlds []*World
-// }
+var worldMemoization = make(map[[16]Amphipod][48]*World, 1024)
 
-// func (wq *WorldQueue) Pop() *World {
-// 	world := wq.Worlds[0]
-// 	wq.Worlds = wq.Worlds[1:]
-// 	return world
-// }
+func (w *World) generateLeafWorlds() [48]*World {
+	if worlds, ok := worldMemoization[w.Amphipods]; ok {
+		return worlds
+	}
 
-// func (wq *WorldQueue) Push(w *World) {
-// 	wq.Worlds = append(wq.Worlds, w)
-// }
-
-// func (wq *WorldQueue) Len() int {
-// 	return len(wq.Worlds)
-// }
-
-func (w *World) generateLeafWorlds() []*World {
-	newWorlds := make([]*World, 0)
+	newWorlds := make([]*World, 0, 64)
 	for i, a := range w.Amphipods {
+		if a.Type == "" {
+			continue
+		}
+
 		// Identify all the moves this amphipod can make
 		//  given this world
 		moves := w.possibleMoves(a)
@@ -435,6 +474,14 @@ func (w *World) generateLeafWorlds() []*World {
 				BurrowHeight:   w.BurrowHeight,
 				CurrentCost:    w.CurrentCost + cost,
 				AdditionalCost: cost,
+				AmphipodsLeft:  w.AmphipodsLeft,
+			}
+
+			// Reduce amphipods left if moving into a burrow
+			// . given that amphipods can only move into a burrow if its
+			// . the right one.
+			if move.Row > 1 {
+				newW.AmphipodsLeft -= 1
 			}
 
 			if newW.burrowsComplete() {
@@ -443,69 +490,18 @@ func (w *World) generateLeafWorlds() []*World {
 			newWorlds = append(newWorlds, &newW)
 		}
 	}
-	sort.Sort(WorldList(newWorlds))
+	sort.Slice(newWorlds, func(i, j int) bool {
+		return newWorlds[i].AdditionalCost < newWorlds[j].AdditionalCost
+	})
 
-	return newWorlds
+	newWorldsArray := [48]*World{}
+	for i, world := range newWorlds {
+		newWorldsArray[i] = world
+	}
+	worldMemoization[w.Amphipods] = newWorldsArray
+
+	return newWorldsArray
 }
-
-// func generateTree(w *World, completed *[]*World) {
-
-// 	worldsToGenerate := WorldQueue{
-// 		Worlds: make([]*World, 0, 100000),
-// 	}
-// 	worldsToGenerate.Push(w)
-
-// 	for worldsToGenerate.Len() > 0 {
-
-// 		currentWorld := worldsToGenerate.Pop()
-
-// 		newWorlds := make([]*World, 0)
-// 		for i, a := range currentWorld.Amphipods {
-// 			// Identify all the moves this amphipod can make
-// 			//  given this world
-// 			moves := currentWorld.possibleMoves(a)
-
-// 			// Generate the costs of all these moves
-// 			for _, move := range moves {
-// 				// Generate new worlds where this amphipod has moved
-// 				// worlds and update the world cost
-
-// 				// Copy amphipods from current world,
-// 				// move just the one amphipod.
-// 				newAmphipods := make([]Amphipod, len(w.Amphipods))
-// 				copy(newAmphipods, currentWorld.Amphipods)
-// 				newAmphipods[i].Position = move
-
-// 				cost := a.costToMove(move)
-// 				newW := World{
-// 					Amphipods:      newAmphipods,
-// 					BurrowHeight:   w.BurrowHeight,
-// 					CurrentCost:    currentWorld.CurrentCost + cost,
-// 					AdditionalCost: cost,
-// 				}
-// 				newW.print()
-
-// 				newWorlds = append(newWorlds, &newW)
-// 			}
-// 		}
-
-// 		for _, world := range newWorlds {
-// 			// Check if the world is complete,
-// 			// if not then generate that world.
-// 			if !world.burrowsComplete() {
-// 				worldsToGenerate.Push(world)
-// 			} else {
-// 				world.Complete = true
-// 				*completed = append(*completed, world)
-// 			}
-// 		}
-
-// 		sort.Sort(WorldList(newWorlds))
-
-// 		// Set children of current world
-// 		currentWorld.LeafWorlds = newWorlds
-// 	}
-// }
 
 func printPath(m map[World]*World, start *World) {
 	ok := true
@@ -513,7 +509,7 @@ func printPath(m map[World]*World, start *World) {
 	w := start
 	for ok {
 		wN, ok = m[*w]
-		log.Print(wN.Print())
+		log.Printf("%s\nTotal Cost: %d", wN.Print(), wN.CurrentCost)
 		w = wN
 	}
 }
@@ -532,169 +528,114 @@ func printPathFrom(m map[World]*World, end *World) {
 	}
 
 	for _, w := range history {
-		log.Printf("%s\n", w.Print())
+		log.Printf("%sTotal Cost: %d\n\n", w.Print(), w.CurrentCost)
 	}
 }
 
 type LowCostQueue struct {
 	worlds   []*World
-	contains map[World]bool
+	contains map[*World]bool
+	fScore   map[*World]uint16
 }
 
-func (lrq LowCostQueue) Len() int {
-	return len(lrq.worlds)
+func (lcq LowCostQueue) Len() int { return len(lcq.worlds) }
+
+func (lcq LowCostQueue) Less(i, j int) bool {
+	return lcq.fScore[lcq.worlds[i]] < lcq.fScore[lcq.worlds[j]]
 }
 
-func (lrq LowCostQueue) Less(i, j int) bool {
-	return lrq.worlds[i].CurrentCost < lrq.worlds[j].CurrentCost
+func (lcq LowCostQueue) Swap(i, j int) {
+	lcq.worlds[i], lcq.worlds[j] = lcq.worlds[j], lcq.worlds[i]
 }
 
-func (lrq LowCostQueue) Swap(i, j int) {
-	lrq.worlds[i], lrq.worlds[j] = lrq.worlds[j], lrq.worlds[i]
+func (lcq *LowCostQueue) Push(x any) {
+	(*lcq).worlds = append((*lcq).worlds, x.(*World))
+	lcq.contains[x.(*World)] = true
 }
 
-func (lrq *LowCostQueue) Push(x interface{}) {
-	world := x.(*World)
-	(*lrq).worlds = append((*lrq).worlds, world)
-	lrq.contains[*world] = true
-}
-
-func (lrq *LowCostQueue) Pop() interface{} {
-	old := (*lrq).worlds
+func (lcq *LowCostQueue) Pop() any {
+	old := (*lcq).worlds
 	n := len(old)
 	item := old[n-1]
 	old[n-1] = nil // avoid memory leak
-	(*lrq).worlds = old[0 : n-1]
-	delete(lrq.contains, *item)
+	(*lcq).worlds = old[0 : n-1]
+	delete((*lcq).contains, item)
 	return item
 }
 
-func (lrq *LowCostQueue) Contains(w World) bool {
-	return lrq.contains[w]
+func (lcq LowCostQueue) Contains(w *World) bool {
+	return lcq.contains[w]
 }
 
-func aStarRestart(start *World) int {
-	lrq := LowCostQueue{
-		worlds:   []*World{},
-		contains: map[World]bool{},
+func aStarRestart(start World) uint16 {
+	lcq := LowCostQueue{
+		worlds:   make([]*World, 0, 256),
+		contains: make(map[*World]bool, 256),
+		fScore:   make(map[*World]uint16, 256),
 	}
 
-	heap.Init(&lrq)
-	heap.Push(&lrq, start)
+	heap.Init(&lcq)
+	heap.Push(&lcq, &start)
 
 	// For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
 	// to n currently known.
 
 	// My take on this is that it's a backwards map
-	cameFrom := make(map[World]*World)
+	cameFrom := make(map[*World]*World)
 
-	//
-	// pathTo := make(map[World]*World)
+	lcq.fScore[&start] = start.h()
 
-	// For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
-	gScore := make(map[World]int)
-	gScore[*start] = 0
+	// For node n, gScore[n] is the cost of the cheapest path from start
+	// . to n currently known.
+	gScore := make(map[*World]uint16)
+	gScore[&start] = 0
 
-	// For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
-	// how short a path from start to finish can be if it goes through n.
+	// minComplete := World{
+	// 	CurrentCost: 0,
+	// }
+	// var lastAdded World
 
-	fScore := make(map[World]int)
-	fScore[*start] = 0
+	for lcq.Len() > 0 {
 
-	for lrq.Len() > 0 {
+		current := heap.Pop(&lcq).(*World)
+		// log.Printf(current.Print())
 
-		current := lrq.Pop().(*World)
-
-		if current.Complete {
-			printPathFrom(cameFrom, current)
+		if current.Complete || current.burrowsComplete() {
 			return current.CurrentCost
 		}
 
+		// Iterate through each leafWorld of current
 		leafWorlds := current.generateLeafWorlds()
+		for i, _ := range leafWorlds {
+			if leafWorlds[i] == nil {
+				continue
+			}
 
-		for _, adjWorld := range leafWorlds {
-
-			tentative_gScore := gScore[*current] + adjWorld.AdditionalCost
-			adjWorldGScore, ok := gScore[*adjWorld]
-			if tentative_gScore < adjWorldGScore || !ok {
-				cameFrom[*adjWorld] = current
-				gScore[*adjWorld] = tentative_gScore
-				fScore[*adjWorld] = tentative_gScore + adjWorld.AdditionalCost
-				if !lrq.Contains(*adjWorld) {
-					lrq.Push(adjWorld)
+			// We want to calculate the value for getting to this adjacent world
+			tentative_gScore := gScore[current] + leafWorlds[i].AdditionalCost
+			if adjWorldGScore, ok := gScore[leafWorlds[i]]; !ok || tentative_gScore < adjWorldGScore {
+				cameFrom[leafWorlds[i]] = current
+				gScore[leafWorlds[i]] = tentative_gScore
+				lcq.fScore[leafWorlds[i]] = tentative_gScore + leafWorlds[i].h()
+				if !lcq.Contains(leafWorlds[i]) {
+					heap.Push(&lcq, leafWorlds[i])
 				}
 			}
 		}
 	}
 
-	return -1
+	return 0
 }
 
-func aStar(start *World) int {
-
-	// completedWorlds := make([]*World, 0)
-	lrq := LowCostQueue{}
-	heap.Init(&lrq)
-	heap.Push(&lrq, start)
-
-	path := make(map[World]*World)
-
-	gScore := map[World]int{
-		*start: 0,
-	}
-
-	for lrq.Len() > 0 {
-
-		// Find min node in the open list
-		current := heap.Pop(&lrq).(*World)
-
-		// If the current world has no leaves then we need to
-		// . generate some as we haven't inspected this World before
-		leafWorlds := current.generateLeafWorlds()
-
-		for _, adjWorld := range leafWorlds {
-			// log.Print(adjWorld.Screen)
-
-			// If we find a world that is complete, then we halt
-			// . but it may be premature.
-			if adjWorld.Complete {
-				path[*current] = adjWorld
-				printPath(path, start)
-				v := gScore[*current]
-				return v + adjWorld.AdditionalCost
-			}
-
-			// Looking before we leap, we take the cost to get to current node
-			// . plus the adjacent node and it's cost.
-			tentativeCost := gScore[*current] + adjWorld.AdditionalCost
-			_, ok := gScore[*adjWorld]
-			// !ok maps to the default value of nil and thus
-			// the tentative score is better
-			if !ok || tentativeCost < gScore[*adjWorld] {
-				path[*current] = adjWorld
-				gScore[*adjWorld] = tentativeCost
-
-				heap.Push(&lrq, adjWorld)
-			}
-		}
-	}
-
-	// JIC
-	return -1
-}
-
-func run(input string, burrowHeight int8) int {
+func run(input string, burrowHeight int8) uint16 {
 	amphipods := parseInput(input)
 	initWorld := World{
-		Amphipods:    amphipods,
-		BurrowHeight: burrowHeight,
-		CurrentCost:  0,
+		Amphipods:      amphipods,
+		BurrowHeight:   burrowHeight,
+		CurrentCost:    0,
+		AdditionalCost: 0,
+		AmphipodsLeft:  int8(4 * burrowHeight),
 	}
 
-	// completedWorlds := make([]*World, 0)
-	// generateTree(&initWorld, &completedWorlds)
-
-	// sort.Sort(WorldList(completedWorlds))
-
-	return aStarRestart(&initWorld)
+	return aStarRestart(initWorld)
 }
