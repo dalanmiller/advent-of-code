@@ -402,6 +402,9 @@ func TestLCQ(t *testing.T) {
 // BenchmarkAStar-10    	       1	3_346_304_250 ns/op	805_341_080 B/op	 5745537 allocs/op
 // PASS
 // ok  	23	3.672s
+
+// 2022-06-16
+
 func BenchmarkAStar(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		amphipods := parseInput(example1)

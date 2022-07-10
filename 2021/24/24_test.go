@@ -6,26 +6,6 @@ import (
 	"testing"
 )
 
-func TestALU(t *testing.T) {
-	tests := []struct {
-		inputs       [14]int64
-		instructions string
-		expected     int64
-	}{
-		{[14]int64{1}, "inp z\nmul z -1", -1},
-		{[14]int64{1, 3}, "inp z\ninp x\nmul z 3\neql z x", 1},
-		{[14]int64{5}, "inp w\nadd z w\nmod z 2\ndiv w 2\nadd y w\nmod y 2\ndiv w 2\nadd x w\nmod x 2\ndiv w 2\nmod w 2", 1},
-	}
-
-	for _, test := range tests {
-		instructions := parseInput(test.instructions)
-		z := ALU(test.inputs, instructions)
-		if test.expected != z {
-			t.Fatalf("Result % d != expected % d", z, test.expected)
-		}
-	}
-}
-
 func TestTwentyFourOne(t *testing.T) {
 	file, err := os.ReadFile("./input")
 	if err != nil {
@@ -36,11 +16,45 @@ func TestTwentyFourOne(t *testing.T) {
 		test     string
 		expected int
 	}{
-		{string(file), 0},
+		// [14]int [9,1,8,9,7,3,9,9,4,9,8,9,9,5]
+		{string(file), 91897399498995},
 	}
 
 	for _, test := range tests {
-		result := run(test.test)
+		result, _ := run(test.test)
+		if result != test.expected {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}
+
+func BenchmarkTwentyFourOne(b *testing.B) {
+	file, err := os.ReadFile("./input")
+	if err != nil {
+		log.Fatalf("could not read file")
+	}
+
+	for i := 0; i < b.N; i++ {
+		run(string(file))
+	}
+}
+
+func TestTwentyFourTwo(t *testing.T) {
+	file, err := os.ReadFile("./input")
+	if err != nil {
+		log.Fatalf("could not read file")
+	}
+
+	tests := []struct {
+		test     string
+		expected int
+	}{
+		// 59989934989719
+		{string(file), 51121176121391},
+	}
+
+	for _, test := range tests {
+		_, result := run(test.test)
 		if result != test.expected {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}

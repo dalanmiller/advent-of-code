@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -27,7 +28,7 @@ func main() {
 
 	var max int
 	for _, dir := range list {
-		if dir.IsDir() {
+		if dir.IsDir() && !strings.HasPrefix(dir.Name(), ".") {
 			n, err := strconv.Atoi(dir.Name())
 			if err != nil {
 				log.Fatalf("Not convertable to int %s", dir.Name())
