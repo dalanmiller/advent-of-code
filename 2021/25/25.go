@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strings"
 )
 
@@ -19,12 +18,11 @@ type Cucumber struct {
 	P Position
 }
 
-var positionMap = map[Position]*Cucumber{}
-
-func parseInput(input string) ([]*Cucumber, []*Cucumber) {
+func parseInput(input string) ([]*Cucumber, []*Cucumber, *map[Position]*Cucumber) {
 	lines := strings.Split(input, "\n")
 	rc := []*Cucumber{}
 	dc := []*Cucumber{}
+	positionMap := map[Position]*Cucumber{}
 
 	for y, line := range lines {
 		for x, char := range line {
@@ -51,66 +49,63 @@ func parseInput(input string) ([]*Cucumber, []*Cucumber) {
 		}
 	}
 
-	return rc, dc
+	return rc, dc, &positionMap
 }
 
-var GRID_WIDTH int
-var GRID_HEIGHT int
-
-func step(rc []*Cucumber, dc []*Cucumber) bool {
+func step(rc, dc []*Cucumber, positionMap *map[Position]*Cucumber, gh, gw int) bool {
 
 	// Check if all RightCucs can move
 	canRightMove := make([]*Cucumber, 0, len(rc))
 	for _, c := range rc {
 		r := c.P[0]
-		if r == GRID_WIDTH-1 && positionMap[Position{0, c.P[1]}] == nil {
+		if r == gw-1 && (*positionMap)[Position{0, c.P[1]}] == nil {
 			canRightMove = append(canRightMove, c)
-		} else if _, ok := positionMap[Position{r + 1, c.P[1]}]; !ok && r+1 < GRID_WIDTH {
+		} else if _, ok := (*positionMap)[Position{r + 1, c.P[1]}]; !ok && r+1 < gw {
 			canRightMove = append(canRightMove, c)
 		}
 	}
 
 	// Move RightCucs
 	for _, c := range canRightMove {
-		newP := Position{(c.P[0] + 1) % GRID_WIDTH, c.P[1]}
-		delete(positionMap, c.P)
+		newP := Position{(c.P[0] + 1) % gw, c.P[1]}
+		delete((*positionMap), c.P)
 		c.P[0] = newP[0]
-		positionMap[c.P] = c
+		(*positionMap)[c.P] = c
 	}
 
 	// Check if all DownCucs can move
 	canDownMove := make([]*Cucumber, 0, len(dc))
 	for _, c := range dc {
 		d := c.P[1]
-		if _, ok := positionMap[Position{c.P[0], d + 1}]; !ok && d+1 < GRID_HEIGHT {
+		if _, ok := (*positionMap)[Position{c.P[0], d + 1}]; !ok && d+1 < gh {
 			canDownMove = append(canDownMove, c)
-		} else if d == GRID_HEIGHT-1 && positionMap[Position{c.P[0], 0}] == nil {
+		} else if d == gh-1 && (*positionMap)[Position{c.P[0], 0}] == nil {
 			canDownMove = append(canDownMove, c)
 		}
 	}
 
 	// Move DownCucs
 	for _, c := range canDownMove {
-		newP := Position{c.P[0], (c.P[1] + 1) % GRID_HEIGHT}
-		delete(positionMap, c.P)
+		newP := Position{c.P[0], (c.P[1] + 1) % gh}
+		delete((*positionMap), c.P)
 		c.P[1] = newP[1]
-		positionMap[c.P] = c
+		(*positionMap)[c.P] = c
 	}
 
 	return !(len(canRightMove) == 0 && len(canDownMove) == 0)
 }
 
-func printGrid() string {
-	grid := make([][]string, GRID_HEIGHT)
+func printGrid(gh, gw int, positionMap *map[Position]*Cucumber) string {
+	grid := make([][]string, gh)
 
 	for i := range grid {
-		grid[i] = make([]string, GRID_WIDTH)
+		grid[i] = make([]string, gw)
 		for j := range grid[i] {
 			grid[i][j] = "."
 		}
 	}
 
-	for k, v := range positionMap {
+	for k, v := range *positionMap {
 		grid[k[1]][k[0]] = string(v.D)
 	}
 
@@ -126,14 +121,14 @@ func printGrid() string {
 }
 
 func run(input string) int {
-	rightCucs, downCucs := parseInput(input)
-	GRID_WIDTH = strings.Index(input, "\n")
-	GRID_HEIGHT = len(strings.Split(input, "\n"))
+	rightCucs, downCucs, pMap := parseInput(input)
+	gw := strings.Index(input, "\n")
+	gh := len(strings.Split(input, "\n"))
 
 	n := 1
-	for step(rightCucs, downCucs) {
+	for step(rightCucs, downCucs, pMap, gh, gw) {
 		n++
-		log.Printf("After %d iteration(s)\n\n%s", n, printGrid())
+		// log.Printf("After %d iteration(s)\n\n%s", n, printGrid())
 	}
 
 	return n

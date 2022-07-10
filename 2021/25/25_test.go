@@ -16,7 +16,7 @@ v>v.vv.v..
 v.v..>>v.v
 ....v..v.>`
 
-	rc, dc := parseInput(input)
+	rc, dc, _ := parseInput(input)
 
 	if len(rc) != 23 {
 		t.Fatalf("Incorrect number of right cucs, got %d", len(rc))
@@ -40,6 +40,7 @@ func TestExamplesTwentyFive(t *testing.T) {
 ........v.`, 9},
 		{`..v
 >>>
+...
 ...`, 1},
 	}
 
@@ -56,9 +57,9 @@ func TestGridPrinter(t *testing.T) {
 >>>
 ...`
 
-	run(test)
+	_, _, pm := parseInput(test)
 
-	result := printGrid()
+	result := printGrid(3, 3, pm)
 	if result != test {
 		t.Fatalf("Grid did not match input, got: \n\n %s", result)
 	}
