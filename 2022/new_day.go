@@ -94,6 +94,29 @@ func TestOneTwo(t *testing.T) {
 	
 `
 
+const MainTemplate = `package main
+	
+func readInput(input string) {
+		
+}	
+
+func run(input string) int {
+	// things = readInput(input)
+
+}`
+
+var NumberWordMap = map[string]string{
+	"1": "One",
+	"2": "Two",
+	"3": "Three",
+	"4": "Four",
+	"5": "Five",
+	"6": "Six",
+	"7": "Seven",
+	"8": "Eight",
+	"9": "Nine",
+}
+
 func main() {
 
 	list, err := ioutil.ReadDir(".")
@@ -127,17 +150,22 @@ func main() {
 	}
 	new_file_path := fmt.Sprintf("%02d/%02d.go", max, max)
 	new_test_file_path := fmt.Sprintf("%02d/%02d_test.go", max, max)
-	err = os.WriteFile(new_file_path, []byte(`package main
-	
-	func run(input string) int {
 
-	}`), 0777)
+	mt, err := template.New("mainFile").Parse(MainTemplate)
+	file, err := os.Create(new_file_path)
+
 	if err != nil {
 		log.Fatalf("Error creating new go file %s %s", new_file_path, err)
 	}
 
+	err = mt.Execute(file, nil)
+
+	if err != nil {
+		log.Fatalf("Error writing template to new go main file %s", err)
+	}
+
 	tt, err := template.New("testFile").Parse(TEST_TEMPLATE)
-	file, err := os.Create(new_test_file_path)
+	file, err = os.Create(new_test_file_path)
 
 	if err != nil {
 		log.Fatalf("Could not create new test file")
@@ -146,7 +174,7 @@ func main() {
 	err = tt.Execute(file, nil)
 
 	if err != nil {
-		log.Fatalf("Error writing template to new go test file %s", new_test_file_path)
+		log.Fatalf("Error writing template to new go test file %s", err)
 	}
 
 	header := http.Header{}

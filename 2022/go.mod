@@ -1,4 +1,4 @@
-module github.com/dalanmiller/aoc/2021
+module github.com/dalanmiller/aoc/2022
 
 go 1.19
 
