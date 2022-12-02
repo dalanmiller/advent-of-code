@@ -4,23 +4,6 @@ import (
 	"strings"
 )
 
-type shape string
-
-const (
-	R1 string = "A"
-	P1        = "B"
-	S1        = "C"
-	R2        = "X"
-	P2        = "Y"
-	S2        = "Z"
-)
-
-var pointMap = map[string]int{
-	"A": 1,
-	"B": 2,
-	"C": 3,
-}
-
 func readInputOne(input string) int {
 	lines := strings.Split(input, "\n")
 
