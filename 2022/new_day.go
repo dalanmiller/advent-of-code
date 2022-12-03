@@ -17,6 +17,12 @@ import (
 
 const TEST_TEMPLATE = `
 package main
+
+import (
+	"testing"
+	"os"
+	"log"	
+)
 	
 func TestExamplesOneOne(t *testing.T) {
 	tests := []struct {
@@ -179,7 +185,7 @@ func main() {
 
 	header := http.Header{}
 	header.Set("Cookie", fmt.Sprintf("session=%s", os.Getenv("session")))
-	url, _ := url.Parse(fmt.Sprintf("https://adventofcode.com/2021/day/%d/input", max))
+	url, _ := url.Parse(fmt.Sprintf("https://adventofcode.com/2022/day/%d/input", max))
 	request := &http.Request{
 		URL:    url,
 		Header: header,
