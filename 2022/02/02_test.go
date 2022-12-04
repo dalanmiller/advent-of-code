@@ -10,7 +10,7 @@ const EXAMPLE = `A Y
 B X
 C Z`
 
-func TestExamplesOneOne(t *testing.T) {
+func TestExamplesTwoOne(t *testing.T) {
 	tests := []struct {
 		test     string
 		expected int
@@ -26,7 +26,7 @@ func TestExamplesOneOne(t *testing.T) {
 	}
 }
 
-func TestOneOne(t *testing.T) {
+func TestTwoOne(t *testing.T) {
 	file, err := os.ReadFile("./input")
 	if err != nil {
 		log.Fatalf("could not read file")
@@ -47,7 +47,7 @@ func TestOneOne(t *testing.T) {
 	}
 }
 
-func TestExamplesOneTwo(t *testing.T) {
+func TestExamplesTwoTwo(t *testing.T) {
 	tests := []struct {
 		test     string
 		expected int
@@ -63,7 +63,7 @@ func TestExamplesOneTwo(t *testing.T) {
 	}
 }
 
-func TestOneTwo(t *testing.T) {
+func TestTwoTwo(t *testing.T) {
 	file, err := os.ReadFile("./input")
 	if err != nil {
 		log.Fatalf("could not read file")
