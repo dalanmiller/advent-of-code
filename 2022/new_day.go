@@ -19,17 +19,20 @@ const TEST_TEMPLATE = `
 package main
 
 import (
-	"testing"
+	"bufio"
 	"os"
-	"log"	
+	"strings"
+	"testing"
 )
+
+// const EXAMPLE = 
 	
-func TestExamplesOneOne(t *testing.T) {
+func TestExamples{{.Day}}One(t *testing.T) {
 	tests := []struct {
-		test     string
+		test     *strings.Reader		
 		expected int
 	}{ 
-		{"", 0},
+		{strings.NewReader(EXAMPLE), 0},
 	}
 
 	for _, test := range tests {
@@ -40,17 +43,16 @@ func TestExamplesOneOne(t *testing.T) {
 	}
 }
 
-func TestOneOne(t *testing.T) {
-	file, err := os.ReadFile("./input")
-	if err != nil {
-		log.Fatalf("could not read file")
-	}
+func Test{{.Day}}One(t *testing.T) {
+	file, _ := os.Open("./input")
+	defer file.Close()
+	reader := bufio.NewReader(file)
 
 	tests := []struct {
-		test string
+		test     *bufio.Reader
 		expected  int
 	}{
-		{string(file), 0},
+		{reader, 0},
 	}
 
 	for _, test := range tests {
@@ -61,12 +63,12 @@ func TestOneOne(t *testing.T) {
 	}
 }
 
-func TestExamplesOneTwo(t *testing.T) {
+func TestExamples{{.Day}}Two(t *testing.T) {
 	tests := []struct {
-		test     string
+		test     *strings.Reader
 		expected int
-	}{ 
-		{"", 0},
+	}{
+		{strings.NewReader(EXAMPLE), 0},
 	}
 
 	for _, test := range tests {
@@ -77,22 +79,21 @@ func TestExamplesOneTwo(t *testing.T) {
 	}
 }
 
-func TestOneTwo(t *testing.T) {
-	file, err := os.ReadFile("./input")
-	if err != nil {
-		log.Fatalf("could not read file")
-	}
+func Test{{.Day}}Two(t *testing.T) {
+	file, _ := os.Open("./input")
+	defer file.Close()
+	reader := bufio.NewReader(file)
 
 	tests := []struct {
-		test string
+		test     *bufio.Reader
 		expected  int
 	}{
-		{string(file), 0},
+		{reader, 0},
 	}
 
 	for _, test := range tests {
 		result := run(test.test)
-		if result[0] != test.expected {
+		if result != test.expected {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}
 	}
@@ -101,17 +102,20 @@ func TestOneTwo(t *testing.T) {
 `
 
 const MainTemplate = `package main
+
+import (
+	"io"
+)
 	
-func readInput(input string) {
+func readInput(input io.Reader) {
 		
 }	
 
-func run(input string) int {
-	// things = readInput(input)
-
+func run(input io.Reader) int {
+	readInput(input)
 }`
 
-var NumberWordMap = map[string]string{
+var numberWordMap = map[string]string{
 	"1": "One",
 	"2": "Two",
 	"3": "Three",
@@ -157,14 +161,27 @@ func main() {
 	new_file_path := fmt.Sprintf("%02d/%02d.go", max, max)
 	new_test_file_path := fmt.Sprintf("%02d/%02d_test.go", max, max)
 
-	mt, err := template.New("mainFile").Parse(MainTemplate)
+	mt, _ := template.New("mainFile").Parse(MainTemplate)
 	file, err := os.Create(new_file_path)
 
 	if err != nil {
 		log.Fatalf("Error creating new go file %s %s", new_file_path, err)
 	}
 
-	err = mt.Execute(file, nil)
+	dayString := strconv.Itoa(max)
+	if len(dayString) > 1 {
+		split := strings.Split(dayString, "")
+		var s strings.Builder
+		for _, sp := range split {
+			s.Write([]byte(numberWordMap[sp]))
+		}
+
+		dayString = s.String()
+	}
+
+	err = mt.Execute(file, struct {
+		Day string
+	}{dayString})
 
 	if err != nil {
 		log.Fatalf("Error writing template to new go main file %s", err)
