@@ -22,7 +22,7 @@ func TestExamplesTwelveOne(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := run(test.test)
+		result := run(test.test, 1)
 		if test.expected != result {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}
@@ -49,7 +49,7 @@ func TestTwelveOne(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := run(test.test)
+		result := run(test.test, 1)
 		if result != test.expected {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}
@@ -65,29 +65,29 @@ func TestExamplesTwelveTwo(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := run(test.test)
+		result := run(test.test, 2)
 		if test.expected != result {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}
 	}
 }
 
-// func TestTwelveTwo(t *testing.T) {
-// 	file, _ := os.Open("./input")
-// 	defer file.Close()
-// 	reader := bufio.NewReader(file)
+func TestTwelveTwo(t *testing.T) {
+	file, _ := os.Open("./input")
+	defer file.Close()
+	reader := bufio.NewReader(file)
 
-// 	tests := []struct {
-// 		test     *bufio.Reader
-// 		expected int
-// 	}{
-// 		{reader, 0},
-// 	}
+	tests := []struct {
+		test     *bufio.Reader
+		expected int
+	}{
+		{reader, 439},
+	}
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if result != test.expected {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	for _, test := range tests {
+		result := run(test.test, 2)
+		if result != test.expected {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}

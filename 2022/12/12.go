@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"container/heap"
 	"io"
-	"log"
 	"math"
 	"sort"
 )
@@ -46,7 +45,7 @@ func (pq pathQueue) Swap(i, j int) {
 	pq[i], pq[j] = pq[j], pq[i]
 }
 
-func traverse(start, end *coord, eGrid elevationGrid) int {
+func traverse(start, end *coord, eGrid elevationGrid, part int) int {
 	visited := map[*coord]bool{start: true}
 	start.Steps = 0
 	pq := pathQueue{}
@@ -59,17 +58,20 @@ func traverse(start, end *coord, eGrid elevationGrid) int {
 			if coord == start {
 				continue
 			}
+			if part == 2 && coord.Elevation == int('a') {
+				coord.Steps = 0
+			}
 			heap.Push(&pq, coord)
 		}
 	}
 
 	for pq.Len() > 0 {
-		if _, visitedEnd := visited[end]; visitedEnd {
-			break
-		}
+		// if _, visitedEnd := visited[end]; visitedEnd {
+		// 	break
+		// }
+
 		// Find min node in the open list
 		current := heap.Pop(&pq).(*coord)
-		log.Printf("(%d, %d)", current.X, current.Y)
 
 		for _, adjCoord := range current.AdjCoords {
 			if _, visited := visited[adjCoord]; !visited {
@@ -79,7 +81,8 @@ func traverse(start, end *coord, eGrid elevationGrid) int {
 					for i, coord := range pq {
 						if coord == adjCoord {
 
-							// The heap doesn't rebalance so you have to tell it to do so
+							// The heap doesn't rebalance on Pop
+							// so you have to tell it to do so
 							heap.Fix(&pq, i)
 							break
 						}
@@ -180,10 +183,10 @@ func readInput(input io.Reader) (*coord, *coord, elevationGrid) {
 	return start, end, m
 }
 
-func run(input io.Reader) int {
+func run(input io.Reader, part int) int {
 	start, end, eGrid := readInput(input)
 
-	steps := traverse(start, end, eGrid)
+	steps := traverse(start, end, eGrid, part)
 
 	return steps
 }
