@@ -2,14 +2,14 @@ package main
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"os"
 	"strings"
 	"testing"
 )
 
-func TestExampleThirteen(t *testing.T) {
-	test := `[1,1,3,1,1]
+const EXAMPLE = `[1,1,3,1,1]
 [1,1,5,1,1]
 
 [[1],[2,3,4]]
@@ -33,11 +33,21 @@ func TestExampleThirteen(t *testing.T) {
 [1,[2,[3,[4,[5,6,7]]]],8,9]
 [1,[2,[3,[4,[5,6,0]]]],8,9]`
 
-	result := run(strings.NewReader(test))
-	if result != 13 {
-		log.Fatalf("Result %d != expected 13", result)
+func TestExampleThirteen(t *testing.T) {
+	tests := []struct {
+		test     string
+		expected int
+	}{
+		{EXAMPLE, 13},
+		{`[[4]]
+[[5]]`, 1},
 	}
-
+	for _, test := range tests {
+		result := runPartOne(strings.NewReader(test.test))
+		if result != test.expected {
+			log.Fatalf("Result %d != expected %d", result, test.expected)
+		}
+	}
 }
 
 func TestThirteenOne(t *testing.T) {
@@ -52,49 +62,51 @@ func TestThirteenOne(t *testing.T) {
 		// 3650 too low
 		// 4442 too low
 		// 6251 too high
-		{reader, 0},
+		{reader, 6240},
 	}
 
 	for _, test := range tests {
-		result := run(test.test)
+		result := runPartOne(test.test)
 		if result != test.expected {
 			t.Fatalf("Result % d != expected % d", result, test.expected)
 		}
 	}
 }
 
-// func TestExamplesThirteenTwo(t *testing.T) {
-// 	tests := []struct {
-// 		test     *strings.Reader
-// 		expected int
-// 	}{
-// 		{strings.NewReader(EXAMPLE), 0},
-// 	}
+func TestExamplesThirteenTwo(t *testing.T) {
+	tests := []struct {
+		test     *strings.Reader
+		expected int
+	}{
+		{strings.NewReader(EXAMPLE + "\n\n[[2]]\n[[6]]"), 140},
+	}
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if test.expected != result {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	for _, test := range tests {
+		result := runPartTwo(test.test)
+		if test.expected != result {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}
 
-// func TestThirteenTwo(t *testing.T) {
-// 	file, _ := os.Open("./input")
-// 	defer file.Close()
-// 	reader := bufio.NewReader(file)
+func TestThirteenTwo(t *testing.T) {
+	file, _ := os.Open("./input")
+	defer file.Close()
 
-// 	tests := []struct {
-// 		test     *bufio.Reader
-// 		expected int
-// 	}{
-// 		{reader, 0},
-// 	}
+	s, _ := io.ReadAll(file)
+	reader := strings.NewReader(string(s) + "\n[[2]]\n[[6]]")
 
-// 	for _, test := range tests {
-// 		result := run(test.test)
-// 		if result != test.expected {
-// 			t.Fatalf("Result % d != expected % d", result, test.expected)
-// 		}
-// 	}
-// }
+	tests := []struct {
+		test     *strings.Reader
+		expected int
+	}{
+		{reader, 23142},
+	}
+
+	for _, test := range tests {
+		result := runPartTwo(test.test)
+		if result != test.expected {
+			t.Fatalf("Result % d != expected % d", result, test.expected)
+		}
+	}
+}

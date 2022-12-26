@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
-	"log"
+	"sort"
 	"strings"
 )
 
@@ -40,10 +41,10 @@ func compare(left, right []interface{}) Outcome {
 		rightN, isRightInt := right[i].(float64)
 
 		leftList, _ := left[i].([]interface{})
-		rightList, _ := left[i].([]interface{})
+		rightList, _ := right[i].([]interface{})
 
 		if isLeftInt && isRightInt {
-			log.Println(leftN, rightN)
+			// log.Println(leftN, rightN)
 			if leftN != rightN {
 				switch leftN < rightN {
 				case true:
@@ -51,6 +52,8 @@ func compare(left, right []interface{}) Outcome {
 				case false:
 					return GREATER
 				}
+			} else {
+				continue
 			}
 		} else if isLeftInt || isRightInt {
 			if isLeftInt {
@@ -99,14 +102,42 @@ func parsePacketString(p string) []interface{} {
 	return packet
 }
 
-func run(input io.Reader) int {
+func runPartOne(input io.Reader) int {
 	pairs := readInput(input)
 
 	s := 0
 	for i, p := range pairs {
-		log.Println(p[0], p[1])
+		// log.Println(p[0], p[1])
 		if compare(p[0], p[1]) == LESS {
 			s += i + 1
+		}
+	}
+
+	return s
+}
+
+func runPartTwo(input io.Reader) int {
+	b, _ := io.ReadAll(input)
+
+	lines := strings.Split(string(b), "\n")
+
+	packets := make([][]interface{}, 0, len(lines))
+	for _, line := range lines {
+		if line == "\n" || line == "" {
+			continue
+		}
+
+		packets = append(packets, parsePacketString(line))
+	}
+
+	sort.Slice(packets, func(i, j int) bool {
+		return compare(packets[i], packets[j]) == LESS
+	})
+
+	s := 1
+	for i, packet := range packets {
+		if fmt.Sprint(packet) == "[[2]]" || fmt.Sprint(packet) == "[[6]]" {
+			s *= i + 1
 		}
 	}
 
