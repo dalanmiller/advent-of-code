@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"io"
-	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -61,7 +60,7 @@ func readInput(input io.Reader) (*map[string]int, *map[string]int, *map[string]m
 			if contains(valveY, destTunnelsX) {
 				shortestPathMap[valveX][valveY] = 1
 			} else {
-				shortestPathMap[valveX][valveY] = math.MaxInt
+				shortestPathMap[valveX][valveY] = 1000
 			}
 		}
 	}
@@ -71,12 +70,19 @@ func readInput(input io.Reader) (*map[string]int, *map[string]int, *map[string]m
 	for x := range shortestPathMap {
 		for y := range shortestPathMap {
 			for z := range shortestPathMap {
-				shortestPathMap[y][z] = int(math.Min(float64(shortestPathMap[y][z]), float64(shortestPathMap[y][x])+float64(shortestPathMap[x][z])))
+				shortestPathMap[y][z] = min(shortestPathMap[y][z], shortestPathMap[y][x]+shortestPathMap[x][z])
 			}
 		}
 	}
 
 	return &rateMap, &bitfieldMap, &shortestPathMap
+}
+func min(a, b int) int {
+	if a <= b {
+		return a
+	} else {
+		return b
+	}
 }
 
 func max(a, b int) int {
