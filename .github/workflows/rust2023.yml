@@ -1,0 +1,35 @@
+name: 2023 Rust Tests
+
+on:
+  push:
+    paths:
+      - "2023/**/*"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # strategy:
+    #   matrix:
+    #     dir: ["path/to/first", "path/to/second", "path/to/third"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+
+      - name: Run tests
+        run: |
+          for dir in $(find . -maxdepth 1 -type d -not -name .git); do
+            if [ -f "$dir/Cargo.toml" ]; then
+              echo "Running tests in $dir"
+              cd "$dir"
+              cargo test
+              cd -
+            fi
+          done
+
