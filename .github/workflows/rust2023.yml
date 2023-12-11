@@ -15,14 +15,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Rust
-        uses: actions/setup-rust@v1
-        with:
-          rust-version: stable
-
+        uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: 
+          toolchain: stable
       - name: Run tests
+        working-directory: ./2023
         run: |
           for dir in $(find . -maxdepth 1 -type d -not -name .git); do
             if [ -f "$dir/Cargo.toml" ]; then
