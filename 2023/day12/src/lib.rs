@@ -48,31 +48,23 @@ pub fn read_input(input: String, part: Part) -> (Vec<Vec<char>>, Vec<Vec<usize>>
 // const MEMO: HashMap<(&[char], &[usize]), usize> = HashMap::with_capacity(100000);
 
 pub fn count(
-    springs: Vec<char>,
-    arrangement: Vec<usize>,
+    springs: &[char],
+    arrangement: &[usize],
     memo: &mut HashMap<(Vec<char>, Vec<usize>), usize>,
 ) -> usize {
     // We've run out of springs and so either we've satisfied the requirement
     // . or we haven't and it's a deadend.
-    if springs.len() == 0 {
-        if arrangement.len() == 0 {
-            return 1;
-        } else {
-            return 0;
-        }
+    if springs.is_empty() {
+        return if arrangement.is_empty() { 1 } else { 0 };
     }
 
     // We've run out of the arrangement and so either we have found a
     // . valid set or there's still more spring in the string.
-    if arrangement.len() == 0 {
-        if springs.contains(&'#') {
-            return 0;
-        } else {
-            return 1;
-        }
+    if arrangement.is_empty() {
+        return if springs.contains(&'#') { 0 } else { 1 };
     }
 
-    let key = (springs.clone(), arrangement.clone());
+    let key = (springs.to_vec(), arrangement.to_vec());
     match memo.get(&key) {
         Some(v) => return *v,
         _ => {}
@@ -81,7 +73,7 @@ pub fn count(
     let mut result = 0;
 
     if ['.', '?'].contains(&springs[0]) {
-        result += count(springs[1..].to_vec(), arrangement.clone(), memo);
+        result += count(&springs[1..], arrangement, memo);
     }
 
     if ['#', '?'].contains(&springs[0]) {
@@ -90,17 +82,9 @@ pub fn count(
             && (arrangement[0] == springs.len() || springs[arrangement[0]] != '#')
         {
             if arrangement[0] == springs.len() {
-                result += count(
-                    springs[arrangement[0]..].to_vec(),
-                    arrangement[1..].to_vec(),
-                    memo,
-                );
+                result += count(&springs[arrangement[0]..], &arrangement[1..], memo);
             } else {
-                result += count(
-                    springs[(arrangement[0] + 1)..].to_vec(),
-                    arrangement[1..].to_vec(),
-                    memo,
-                );
+                result += count(&springs[(arrangement[0] + 1)..], &arrangement[1..], memo);
             }
         }
     }
@@ -110,12 +94,10 @@ pub fn count(
 }
 
 pub fn part_one(springs: Vec<Vec<char>>, arrangements: Vec<Vec<usize>>) -> usize {
-    let mut sum = 0;
-
-    for (spring, arrangement) in zip_eq(springs, arrangements) {
-        let mut memo = HashMap::with_capacity(spring.len() * spring.len());
-        sum += count(spring, arrangement, &mut memo);
-    }
-
-    sum
+    zip_eq(springs, arrangements)
+        .map(|(spring, arrangement)| {
+            let mut memo = HashMap::with_capacity(spring.len() * spring.len());
+            count(&spring, &arrangement, &mut memo)
+        })
+        .sum()
 }
