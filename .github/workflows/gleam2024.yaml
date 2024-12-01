@@ -26,6 +26,9 @@ jobs:
       #     export PATH=$HOME/.gleam/bin:$PATH
       - name: Install Gleam
         uses: erlef/setup-beam@v1
+        with:
+            otp-version: false
+            gleam-version: '1.6'
 
       - name: Verify Gleam Installation
         run: gleam --version
