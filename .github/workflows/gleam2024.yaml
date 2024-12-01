@@ -12,13 +12,27 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # - name: Install erlang
+      #   run: |
+      #     wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
+      #     sudo dpkg -i erlang-solutions_2.0_all.deb
+      #     sudo apt-get update
+      #     sudo apt-get install esl-erlang
+        
+      # - name: Install Gleam
+      #   run: |
+      #     curl -fSsL https://gleam.run/install.sh | sh
+      #     export PATH=$HOME/.gleam/bin:$PATH
       - name: Install Gleam
-        run: |
-          curl -fSsL https://gleam.run/install.sh | sh
-          export PATH=$HOME/.gleam/bin:$PATH
+        uses: erlef/setup-beam@v1
 
       - name: Verify Gleam Installation
         run: gleam --version
+
+      - name: Run Gleam Check
+        working-directory: ./2024
+        run: gleam check
         
       - name: Run Gleam tests
         working-directory: ./2024
