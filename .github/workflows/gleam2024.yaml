@@ -1,0 +1,25 @@
+name: 2024 Gleam Tests
+
+on:
+  push:
+    paths:
+      - "2024/**/*"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Gleam
+        run: |
+          curl -fSsL https://gleam.run/install.sh | sh
+          export PATH=$HOME/.gleam/bin:$PATH
+
+      - name: Verify Gleam Installation
+        run: gleam --version
+        
+      - name: Run Gleam tests
+        working-directory: ./2024
+        run: gleam test
