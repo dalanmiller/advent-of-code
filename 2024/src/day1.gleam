@@ -1,28 +1,22 @@
-import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
-import gleam/option
-import gleam/string
+import gleam/string 
+import gleam/dict
 import utils
 
 pub fn main() {
-  part1()
-  part2()
-}
-
-pub fn part1() {
-  // use file <- result.try(utils.read_file("day1.input"))
-
-  let file = case utils.read_file("day1.input") {
+  let input = case utils.read_file("day1.input") {
     Ok(s) -> s
     _ -> "dunno"
   }
+  part1(input)
+  part2(input)
+}
 
-  io.debug("OK")
-
+pub fn part1(input) -> Int{
   let list_a =
-    file
+    input
     |> string.split("\n")
     |> list.filter_map(fn(a) {
       a
@@ -38,7 +32,7 @@ pub fn part1() {
     |> list.sort(int.compare)
 
   let list_b =
-    file
+    input
     |> string.split("\n")
     |> list.filter_map(fn(a) {
       a
@@ -59,16 +53,12 @@ pub fn part1() {
     |> list.fold(0, fn(b, a) { b + int.absolute_value(a.0 - a.1) })
 
   io.debug("part1: " <> int.to_string(result))
+  result 
 }
 
-pub fn part2() {
-  let file = case utils.read_file("day1.input") {
-    Ok(s) -> s
-    _ -> "dunno"
-  }
-
+pub fn part2(input) -> Int {
   let counts =
-    file
+    input
     |> string.split("\n")
     |> list.filter_map(fn(a) {
       a
@@ -89,7 +79,7 @@ pub fn part2() {
     })
 
   let result =
-    file
+    input
     |> string.split("\n")
     |> list.filter_map(fn(a) {
       a
@@ -111,4 +101,5 @@ pub fn part2() {
 
   // 1189304 too low 
   io.debug("part2: " <> int.to_string(result))
+  result
 }
