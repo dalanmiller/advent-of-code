@@ -1,10 +1,11 @@
 name: 2024 Gleam Tests
-
+defaults:
+  run:
+    working-directory: "2024"
 on:
   push:
     paths:
       - "2024/**/*"
-
 jobs:
   test:
     runs-on: ubuntu-latest
