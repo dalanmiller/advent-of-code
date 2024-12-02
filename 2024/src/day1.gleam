@@ -8,6 +8,7 @@ import utils
 
 pub fn main() {
   part1()
+  part2()
 }
 
 pub fn part1() {
@@ -57,7 +58,7 @@ pub fn part1() {
     |> list.zip(list_b)
     |> list.fold(0, fn(b, a) { b + int.absolute_value(a.0 - a.1) })
 
-  io.debug(result)
+  io.debug("part1: " <> int.to_string(result))
 }
 
 pub fn part2() {
@@ -102,30 +103,12 @@ pub fn part2() {
       }
     })
     |> list.fold(0, fn(acc, a) { 
-      case dict.get(count, a) {
-        Ok(v) -> { acc + (a * v) } 
+      case dict.get(counts, a) {
+        Ok(v) -> { acc + {a * v} } 
         Error(_) -> acc
+      }
     })
-  // let result =
-  //   file
-  //   |> string.split("\n")
-  //   |> list.fold(#(dict.new(), dict.new()), fn(b, a) {
-  //     a
-  //     |> string.split("   ")
-  //     |> list.map(fn(n) {
-  //       case int.parse(n) {
-  //         Ok(n) -> Ok(n)
-  //         Error(_) -> Error(Nil)
-  //       }
-  //     })
-  //     |> list.take(2)
-  //     |> list.map(fn(numbers) {
-  //       case dict.has_key(b.first, numbers.first) {
-  //         True -> dict.insert(b.first, numbers.first, dict.get(b.first) + 1)
-  //         False -> dict.insert(b.first, numbers.first, 1)
-  //       }
-  //     })
-  //   })
 
-  // io.debug(result)
+  // 1189304 too low 
+  io.debug("part2: " <> int.to_string(result))
 }
