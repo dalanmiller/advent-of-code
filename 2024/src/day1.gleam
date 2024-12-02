@@ -1,8 +1,8 @@
+import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
-import gleam/string 
-import gleam/dict
+import gleam/string
 import utils
 
 pub fn main() {
@@ -14,7 +14,7 @@ pub fn main() {
   part2(input)
 }
 
-pub fn part1(input) -> Int{
+pub fn part1(input) -> Int {
   let list_a =
     input
     |> string.split("\n")
@@ -53,7 +53,7 @@ pub fn part1(input) -> Int{
     |> list.fold(0, fn(b, a) { b + int.absolute_value(a.0 - a.1) })
 
   io.debug("part1: " <> int.to_string(result))
-  result 
+  result
 }
 
 pub fn part2(input) -> Int {
@@ -92,9 +92,11 @@ pub fn part2(input) -> Int {
         Error(_) -> Error(Nil)
       }
     })
-    |> list.fold(0, fn(acc, a) { 
+    |> list.fold(0, fn(acc, a) {
       case dict.get(counts, a) {
-        Ok(v) -> { acc + {a * v} } 
+        Ok(v) -> {
+          acc + { a * v }
+        }
         Error(_) -> acc
       }
     })

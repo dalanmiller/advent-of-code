@@ -8,7 +8,7 @@ pub fn main() {
 
 // gleeunit test functions end in `_test`
 pub fn day_1_part_1_test() {
-"3   4
+  "3   4
 4   3
 2   5
 1   3
