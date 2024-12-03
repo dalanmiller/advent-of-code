@@ -4,9 +4,6 @@ import gleave
 import simplifile
 
 pub fn read_file(path: String) -> Result(String, String) {
-  io.debug("READING #{path}")
-  io.debug(path)
-
   let codespaces_path = "/workspaces/advent-of-code/2024/src"
   let laptop_path = "/Users/dalan/repos/dalan_advent_of_code/2024/src"
 
