@@ -79,30 +79,31 @@ pub fn unsafe_test() {
   |> day2.part2
   |> should.equal(0)
 }
+
 pub fn day_2_part_2_ascending_test() {
   "1 3 2 4 5"
-  |> day2.part2 
+  |> day2.part2
   |> should.equal(1)
 
   "1 2 3 4 5"
-  |> day2.part2 
+  |> day2.part2
   |> should.equal(1)
 
   "1 2 3 4 3"
-  |> day2.part2 
+  |> day2.part2
   |> should.equal(1)
 }
 
 pub fn day_2_part_2_desc_test() {
   "5 4 3 2 1"
-  |> day2.part2 
+  |> day2.part2
   |> should.equal(1)
 
   "5 6 4 3 2"
-  |> day2.part2 
+  |> day2.part2
   |> should.equal(1)
 
   "5 4 3 2 5"
-  |> day2.part2 
+  |> day2.part2
   |> should.equal(1)
 }

@@ -146,11 +146,13 @@ pub fn part2(input) -> Int {
     })
   })
   |> list.filter_map(fn(ints) {
-    case ints
-    |> sublists_with_one_removed
-    |> list.any(fn(ints: List(Int)) -> Bool{
-      is_increasing(ints) || is_decreasing(ints) 
-    }) {
+    case
+      ints
+      |> sublists_with_one_removed
+      |> list.any(fn(ints: List(Int)) -> Bool {
+        is_increasing(ints) || is_decreasing(ints)
+      })
+    {
       True -> Ok(1)
       False -> Error(0)
     }
