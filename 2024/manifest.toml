@@ -4,6 +4,7 @@
 packages = [
   { name = "file_streams", version = "1.2.2", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "file_streams", source = "hex", outer_checksum = "E8659E84092A720CB8D737FE6E529B9B7597E92B4B2A70A917E8590FBEAD0AE6" },
   { name = "filepath", version = "1.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "filepath", source = "hex", outer_checksum = "67A6D15FB39EEB69DD31F8C145BB5A421790581BD6AA14B33D64D5A55DBD6587" },
+  { name = "gleam_regexp", version = "1.0.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleam_regexp", source = "hex", outer_checksum = "A3655FDD288571E90EE9C4009B719FEF59FA16AFCDF3952A76A125AF23CF1592" },
   { name = "gleam_stdlib", version = "0.45.0", build_tools = ["gleam"], requirements = [], otp_app = "gleam_stdlib", source = "hex", outer_checksum = "206FCE1A76974AECFC55AEBCD0217D59EDE4E408C016E2CFCCC8FF51278F186E" },
   { name = "gleave", version = "1.0.0", build_tools = ["gleam"], requirements = [], otp_app = "gleave", source = "hex", outer_checksum = "EBEB0DF9C764A6CB22623FF6F03A0BC978D75225303F3BBDEEB705A2DD700D0D" },
   { name = "gleeunit", version = "1.2.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleeunit", source = "hex", outer_checksum = "F7A7228925D3EE7D0813C922E062BFD6D7E9310F0BEE585D3A42F3307E3CFD13" },
@@ -13,6 +14,7 @@ packages = [
 [requirements]
 file_streams = { version = ">= 1.2.2 and < 2.0.0" }
 filepath = { version = ">= 1.1.0 and < 2.0.0" }
+gleam_regexp = { version = ">= 1.0.0 and < 2.0.0" }
 gleam_stdlib = { version = ">= 0.34.0 and < 2.0.0" }
 gleave = { version = ">= 1.0.0 and < 2.0.0" }
 gleeunit = { version = ">= 1.0.0 and < 2.0.0" }
