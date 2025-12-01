@@ -60,14 +60,14 @@ func Day01PartTwo(r io.Reader) int {
 		switch direction {
 		case 'L':
 			hits += ((100-position)%100 + clicks) / 100
-			old_position := position
+			// old_position := position
 			position = mod(position-clicks, 100)
-			log.Printf("%d : -%d : %d", old_position, clicks, position)
+			// log.Printf("%d : -%d : %d", old_position, clicks, position)
 		case 'R':
 			hits = (position + clicks) / 100
-			old_position := position
+			// old_position := position
 			position = mod(position+clicks, 100)
-			log.Printf("%d : +%d : %d", old_position, clicks, position)
+			// log.Printf("%d : +%d : %d", old_position, clicks, position)
 		}
 
 		count += hits
