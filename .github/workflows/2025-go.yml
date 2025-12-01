@@ -1,23 +1,34 @@
 
-name: 2025 Go tests
+name: 2025 Go CI
+
+on:
+  push:
+    paths:
+      - "2025/**"
+  pull_request:
+    paths:
+      - "2025/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 defaults:
   run:
     working-directory: "2025"
 
-on:
-  push:
-    paths:
-      - "2025/**/*"
-
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 2025/go.mod
+          cache: true
 
       - name: Test
-        run: go test -v ./...
+        run: go test ./...
