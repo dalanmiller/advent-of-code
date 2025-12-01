@@ -1,0 +1,23 @@
+
+name: 2025 Go tests
+
+defaults:
+  run:
+    working-directory: "2025"
+
+on:
+  push:
+    paths:
+      - "2025/**/*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+
+      - name: Test
+        run: go test -v ./...
