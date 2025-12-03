@@ -80,7 +80,7 @@ func Day02PartTwo(r io.Reader) int {
 	}
 	line := strings.TrimSpace(string(b))
 	ranges := strings.Split(line, ",")
-	log.Printf("Ranges: %s", ranges)
+	// log.Printf("Ranges: %s", ranges)
 
 	sum := 0
 
@@ -93,7 +93,7 @@ func Day02PartTwo(r io.Reader) int {
 			str := strconv.Itoa(i)
 			for j := 1; j <= (len(str) / 2); j++ {
 				if allEqual(splitEvery(str, j)) {
-					log.Printf("Winner!: %d", i)
+					// log.Printf("Winner!: %d", i)
 					sum += i
 					break
 				}

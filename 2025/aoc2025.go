@@ -64,3 +64,10 @@ func AssertEqual(t *testing.T, solver func(io.Reader) int, input io.Reader, expe
 		t.Fatalf("got %d, expected %d", got, expected)
 	}
 }
+
+func AssertEqual64(t *testing.T, solver func(io.Reader) int64, input io.Reader, expected int64) {
+	t.Helper()
+	if got := solver(input); got != expected {
+		t.Fatalf("got %d, expected %d", got, expected)
+	}
+}
