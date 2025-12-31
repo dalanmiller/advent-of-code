@@ -65,6 +65,13 @@ func AssertEqual(t *testing.T, solver func(io.Reader) int, input io.Reader, expe
 	}
 }
 
+func AssertEqual8(t *testing.T, solver func(io.Reader, int) int, input io.Reader, connections int, expected int) {
+	t.Helper()
+	if got := solver(input, connections); got != expected {
+		t.Fatalf("got %d, expected %d", got, expected)
+	}
+}
+
 func AssertEqual64(t *testing.T, solver func(io.Reader) int64, input io.Reader, expected int64) {
 	t.Helper()
 	if got := solver(input); got != expected {
